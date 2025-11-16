@@ -1,8 +1,80 @@
-<!DOCTYPE html>
-<html>
-<head><title>Performances</title></head>
-<body style="background:#000;color:white;text-align:center;padding-top:100px;">
-<h1>Performances Page</h1>
-<p>Coming soon...</p>
-</body>
-</html>
+<div class="container-mobile mt-4">
+
+  <h1 class="text-center mb-4">Your Status</h1>
+
+  <div class="status-card p-3 mb-3">
+      <div class="d-flex justify-content-between">
+          <strong>Strength</strong>
+          <span id="strengthValue">0</span>
+      </div>
+      <div class="progress mt-1">
+          <div id="strengthBar" class="progress-bar" role="progressbar"></div>
+      </div>
+  </div>
+
+  <div class="status-card p-3 mb-3">
+      <div class="d-flex justify-content-between">
+          <strong>Stamina</strong>
+          <span id="staminaValue">0</span>
+      </div>
+      <div class="progress mt-1">
+          <div id="staminaBar" class="progress-bar" role="progressbar"></div>
+      </div>
+  </div>
+
+  <div class="status-card p-3 mb-3">
+      <div class="d-flex justify-content-between">
+          <strong>Agility</strong>
+          <span id="agilityValue">0</span>
+      </div>
+      <div class="progress mt-1">
+          <div id="agilityBar" class="progress-bar" role="progressbar"></div>
+      </div>
+  </div>
+
+</div>
+
+<style>
+.container-mobile {
+    max-width: 420px;
+    margin: auto;
+}
+.status-card {
+    background: #1a1a1a;
+    border-radius: 14px;
+}
+.progress {
+    height: 10px;
+    background: #333;
+}
+.progress-bar {
+    background: #4caf50;
+    width: 0%;
+    transition: width 0.8s ease;
+}
+</style>
+
+<script>
+// default stats if none exist yet
+let stats = JSON.parse(localStorage.getItem("stats")) || {
+    strength: 40,
+    stamina: 70,
+    agility: 55
+};
+
+// save stats back
+localStorage.setItem("stats", JSON.stringify(stats));
+
+// Update UI
+function updateStatus() {
+    strengthValue.innerText = stats.strength + "%";
+    staminaValue.innerText = stats.stamina + "%";
+    agilityValue.innerText = stats.agility + "%";
+
+    strengthBar.style.width = stats.strength + "%";
+    staminaBar.style.width = stats.stamina + "%";
+    agilityBar.style.width = stats.agility + "%";
+}
+
+updateStatus();
+</script>
