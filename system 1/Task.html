@@ -9,12 +9,24 @@
 <link rel="manifest" href="manifest.json">
 
 <style>
-body { background: #111; color: white; padding-top: 50px; }
+body { 
+    background: #111; 
+    color: white; 
+    padding-top: 50px; 
+}
+
+/* Better mobile list appearance */
+.list-group-item {
+    background: #222;
+    color: white;
+    border: 1px solid #333;
+}
 </style>
 </head>
 
 <body>
-<div class="container text-center">
+
+<div class="container text-center" style="max-width: 400px;">
     <h2>Add Your Tasks</h2>
 
     <input id="inputTask" class="form-control mt-3" placeholder="Write a task">
@@ -26,6 +38,9 @@ body { background: #111; color: white; padding-top: 50px; }
 </div>
 
 <script>
+const inputTask = document.getElementById("inputTask");
+const taskList = document.getElementById("taskList");
+
 let tasks = [];
 
 document.getElementById("addTaskBtn").addEventListener("click", () => {
@@ -49,10 +64,10 @@ document.getElementById("startBtn").addEventListener("click", () => {
     localStorage.setItem("currentTaskIndex", "0");
     localStorage.setItem("day", "1");
 
-    window.location.href = "system1.html";
+    window.location.href = "index.html";
 });
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-
