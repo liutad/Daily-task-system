@@ -6,61 +6,13 @@
 <title>Performances</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
-
-
 
 <style>
 body {
     background: black;
     color: white;
 }
-
-</style>
-</head>
-
-<body>
-
-<!-- status page -->
-<div class="container-mobile mt-4">
-
-  <h1 class="text-center mb-4">Your Status</h1>
-
-  <div class="status-card p-3 mb-3">
-      <div class="d-flex justify-content-between">
-          <strong>Strength</strong>
-          <span id="strengthValue">0</span>
-      </div>
-      <div class="progress mt-1">
-          <div id="strengthBar" class="progress-bar" role="progressbar"></div>
-      </div>
-  </div>
-
-  <div class="status-card p-3 mb-3">
-      <div class="d-flex justify-content-between">
-          <strong>Stamina</strong>
-          <span id="staminaValue">0</span>
-      </div>
-      <div class="progress mt-1">
-          <div id="staminaBar" class="progress-bar" role="progressbar"></div>
-      </div>
-  </div>
-
-  <div class="status-card p-3 mb-3">
-      <div class="d-flex justify-content-between">
-          <strong>Agility</strong>
-          <span id="agilityValue">0</span>
-      </div>
-      <div class="progress mt-1">
-          <div id="agilityBar" class="progress-bar" role="progressbar"></div>
-      </div>
-  </div>
-
-</div>
-
-<style>
 .container-mobile {
     max-width: 420px;
     margin: auto;
@@ -79,34 +31,121 @@ body {
     transition: width 0.8s ease;
 }
 </style>
+</head>
+
+<body>
+
+<div class="container-mobile mt-4">
+
+  <h1 class="text-center mb-4">Your Status</h1>
+
+  <!-- Strength -->
+  <div class="status-card p-3 mb-3">
+      <div class="d-flex justify-content-between">
+          <strong>Strength</strong>
+          <span id="strengthValue">0</span>
+      </div>
+      <div class="progress mt-1">
+          <div id="strengthBar" class="progress-bar"></div>
+      </div>
+  </div>
+
+  <!-- Stamina -->
+  <div class="status-card p-3 mb-3">
+      <div class="d-flex justify-content-between">
+          <strong>Stamina</strong>
+          <span id="staminaValue">0</span>
+      </div>
+      <div class="progress mt-1">
+          <div id="staminaBar" class="progress-bar"></div>
+      </div>
+  </div>
+
+  <!-- Agility -->
+  <div class="status-card p-3 mb-3">
+      <div class="d-flex justify-content-between">
+          <strong>Agility</strong>
+          <span id="agilityValue">0</span>
+      </div>
+      <div class="progress mt-1">
+          <div id="agilityBar" class="progress-bar"></div>
+      </div>
+  </div>
+
+  <!-- Fatigue -->
+  <div class="status-card p-3 mb-3">
+      <div class="d-flex justify-content-between">
+          <strong>Fatigue</strong>
+          <span id="fatigueValue">0%</span>
+      </div>
+      <div class="progress mt-1">
+          <div id="fatigueBar" class="progress-bar bg-danger"></div>
+      </div>
+  </div>
+
+</div>
 
 <script>
-// default stats if none exist yet
+// Load stats
 let stats = JSON.parse(localStorage.getItem("stats")) || {
     strength: 40,
     stamina: 70,
-    agility: 55
+    agility: 55,
+    fatigue: 20 // NEW SYSTEM
 };
 
-// save stats back
+// Save stats
 localStorage.setItem("stats", JSON.stringify(stats));
 
-// Update UI
-function updateStatus() {
-    strengthValue.innerText = stats.strength + "%";
-    staminaValue.innerText = stats.stamina + "%";
-    agilityValue.innerText = stats.agility + "%";
+/* -----------------------
+   FATIGUE EFFECT SYSTEM
+--------------------------*/
+function applyFatigueEffects(base) {
+    let f = stats.fatigue;
 
-    strengthBar.style.width = stats.strength + "%";
-    staminaBar.style.width = stats.stamina + "%";
-    agilityBar.style.width = stats.agility + "%";
+    if (f > 70) return Math.round(base * 0.8); // –20%
+    if (f > 40) return Math.round(base * 0.9); // –10%
+    return base; // Normal
 }
 
-updateStatus();
+/* -----------------------
+   UPDATE DISPLAY
+--------------------------*/
+function updateUI() {
+    // Apply fatigue modifiers
+    let str = applyFatigueEffects(stats.strength);
+    let sta = applyFatigueEffects(stats.stamina);
+    let agi = applyFatigueEffects(stats.agility);
+
+    strengthValue.innerText = str + "%";
+    staminaValue.innerText = sta + "%";
+    agilityValue.innerText = agi + "%";
+
+    strengthBar.style.width = str + "%";
+    staminaBar.style.width = sta + "%";
+    agilityBar.style.width = agi + "%";
+
+    // Fatigue display
+    fatigueValue.innerText = stats.fatigue + "%";
+    fatigueBar.style.width = stats.fatigue + "%";
+
+    // Save
+    localStorage.setItem("stats", JSON.stringify(stats));
+}
+
+updateUI();
+
+/* -----------------------
+   AUTO FATIGUE RECOVERY
+--------------------------*/
+setInterval(() => {
+    if (stats.fatigue > 0) {
+        stats.fatigue -= 1;
+        updateUI();
+    }
+}, 60000); // Every 1 minute
+
 </script>
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
