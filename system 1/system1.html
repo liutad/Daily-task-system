@@ -52,6 +52,7 @@ body {
 
 </div>
 
+
 <script>
 // Fade animation
 setTimeout(() => {
@@ -67,7 +68,80 @@ let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 let index = Number(localStorage.getItem("currentTaskIndex")) || 0;
 let day = Number(localStorage.getItem("day")) || 1;
 
-// Update UI
+// Load stats
+let stats = JSON.parse(localStorage.getItem("stats")) || {
+    strength: 20,
+    stamina: 40,
+    agility: 35,
+    fatigue: 10
+};
+
+// Fatigue recovery (offline recovery)
+let lastTime = Number(localStorage.getItem("lastUpdateTime")) || Date.now();
+let now = Date.now();
+let hoursPassed = (now - lastTime) / (1000 * 60 * 60);
+stats.fatigue = Math.max(0, stats.fatigue - hoursPassed * 4);
+localStorage.setItem("lastUpdateTime", now);
+
+
+// -------------------
+// TASK TYPE DETECTION
+// -------------------
+function getTaskType(task) {
+    task = task.toLowerCase();
+    if (task.includes("run") || task.includes("gym") || task.includes("push") || task.includes("lift")) return "physical";
+    if (task.includes("clean") || task.includes("walk") || task.includes("move")) return "agility";
+    return "mental";
+}
+
+
+// -------------------
+// FATIGUE MULTIPLIER
+// -------------------
+function getFatigueMultiplier() {
+    let f = stats.fatigue;
+
+    if (f < 30) return 1.0;
+    if (f < 60) return 0.7;
+    if (f < 85) return 0.4;
+    return 0.15;
+}
+
+
+// -------------------
+// STAT INCREASE
+// -------------------
+function increaseStats(task) {
+    const type = getTaskType(task);
+    const m = getFatigueMultiplier();
+
+    if (type === "physical") {
+        stats.strength += 1.5 * m;
+        stats.stamina += 0.7 * m;
+        stats.fatigue += 10;
+    } 
+    else if (type === "agility") {
+        stats.agility += 1.2 * m;
+        stats.stamina += 0.5 * m;
+        stats.fatigue += 8;
+    }
+    else {
+        stats.stamina += 0.3 * m;
+        stats.fatigue += 5;
+    }
+
+    stats.strength = Math.min(100, stats.strength);
+    stats.stamina = Math.min(100, stats.stamina);
+    stats.agility = Math.min(100, stats.agility);
+    stats.fatigue = Math.min(100, stats.fatigue);
+
+    localStorage.setItem("stats", JSON.stringify(stats));
+}
+
+
+// -------------------
+// UPDATE UI
+// -------------------
 function update() {
     dayTitle.innerText = "Day " + day;
 
@@ -84,19 +158,30 @@ function update() {
 
 update();
 
+
+// -------------------
+// COMPLETE TASK
+// -------------------
 done.addEventListener("click", () => {
+
+    // 📌 Increase stats FIRST
+    increaseStats(tasks[index]);
+
     index++;
 
-    // If tasks left today → continue
+    // Continue tasks
     if (index < tasks.length) {
         localStorage.setItem("currentTaskIndex", index);
         update();
         return;
     }
 
-    // If finished all tasks → move to next day
+    // Finish day
     taskText.innerText = "🎉 Day " + day + " Completed!";
     done.style.display = "none";
+
+    // Save stats
+    localStorage.setItem("stats", JSON.stringify(stats));
 
     setTimeout(() => {
         day++;
@@ -109,81 +194,10 @@ done.addEventListener("click", () => {
     }, 1500);
 
 });
-
-
-    // stats
-let stats = JSON.parse(localStorage.getItem("stats")) || {
-    strength: 20,
-    stamina: 40,
-    agility: 35,
-    fatigue: 10 // new
-};
-
-// Restore fatigue reduction based on time passed
-let lastTime = Number(localStorage.getItem("lastUpdateTime")) || Date.now();
-let now = Date.now();
-let hoursPassed = (now - lastTime) / (1000 * 60 * 60);
-
-stats.fatigue = Math.max(0, stats.fatigue - hoursPassed * 4); 
-// recovers 4 fatigue per hour
-
-localStorage.setItem("lastUpdateTime", now);
-
-
-// Determine task category
-function getTaskType(task) {
-    task = task.toLowerCase();
-    if (task.includes("run") || task.includes("gym") || task.includes("push") || task.includes("lift")) return "physical";
-    if (task.includes("clean") || task.includes("walk") || task.includes("move")) return "agility";
-    return "mental";
-}
-
-
-// FATIGUE MULTIPLIER
-function getFatigueMultiplier() {
-    let f = stats.fatigue;
-
-    if (f < 30) return 1.0;      // Fresh
-    if (f < 60) return 0.7;      // Normal tired
-    if (f < 85) return 0.4;      // Very tired
-    return 0.15;                 // Exhausted (almost no progress)
-}
-
-
-// Increase stats with fatigue logic
-function increaseStats(task) {
-    const type = getTaskType(task);
-    const m = getFatigueMultiplier();
-
-    if (type === "physical") {
-        stats.strength += 1.5 * m;
-        stats.stamina += 0.7 * m;
-        stats.fatigue += 10;
-    } 
-    else if (type === "agility") {
-        stats.agility += 1.2 * m;
-        stats.stamina += 0.5 * m;
-        stats.fatigue += 8;
-    }
-    else { // mental
-        stats.stamina += 0.3 * m;
-        stats.fatigue += 5;
-    }
-
-    // stat caps
-    stats.strength = Math.min(100, stats.strength);
-    stats.stamina = Math.min(100, stats.stamina);
-    stats.agility = Math.min(100, stats.agility);
-
-    // fatigue caps
-    stats.fatigue = Math.min(100, stats.fatigue);
-
-    localStorage.setItem("stats", JSON.stringify(stats));
-}
-
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
