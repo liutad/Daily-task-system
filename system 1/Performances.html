@@ -83,19 +83,41 @@ body {
       </div>
   </div>
 
+  <!-- Radar Chart Section -->
+  <div class="status-card p-3 mb-4 text-center">
+      <strong class="d-block mb-2">Potential Overview</strong>
+      <canvas id="potentialChart" height="260"></canvas>
+  </div>
+
 </div>
 
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-// Load stats
+// Load stats from storage
 let stats = JSON.parse(localStorage.getItem("stats")) || {
     strength: 40,
     stamina: 70,
     agility: 55,
-    fatigue: 20 // NEW SYSTEM
+    fatigue: 20,
+    hp: 80,
+    speed: 65
 };
 
 // Save stats
 localStorage.setItem("stats", JSON.stringify(stats));
+
+/* -----------------------
+   POTENTIAL (fixed values)
+--------------------------*/
+let potential = {
+    strength: 90,
+    stamina: 85,
+    agility: 88,
+    speed: 92,
+    hp: 95
+};
 
 /* -----------------------
    FATIGUE EFFECT SYSTEM
@@ -109,8 +131,88 @@ function applyFatigueEffects(base) {
 }
 
 /* -----------------------
+   CURRENT VALUES (for radar)
+--------------------------*/
+function getCurrentStats() {
+    return {
+        strength: applyFatigueEffects(stats.strength),
+        stamina: applyFatigueEffects(stats.stamina),
+        agility: applyFatigueEffects(stats.agility),
+        speed: applyFatigueEffects(stats.speed),
+        hp: stats.hp
+    };
+}
+
+/* -----------------------
+   INIT RADAR CHART
+--------------------------*/
+const radarCanvas = document.getElementById("potentialChart");
+let current = getCurrentStats();
+
+const potentialChart = new Chart(radarCanvas, {
+    type: "radar",
+    data: {
+        labels: ["Strength", "Stamina", "Agility", "Speed", "HP"],
+        datasets: [
+            {
+                label: "Current",
+                data: [
+                    current.strength,
+                    current.stamina,
+                    current.agility,
+                    current.speed,
+                    current.hp
+                ],
+                borderColor: "#4caf50",
+                backgroundColor: "rgba(76, 175, 80, 0.25)",
+                borderWidth: 2,
+                pointRadius: 3
+            },
+            {
+                label: "Potential",
+                data: [
+                    potential.strength,
+                    potential.stamina,
+                    potential.agility,
+                    potential.speed,
+                    potential.hp
+                ],
+                borderColor: "#00bcd4",
+                backgroundColor: "rgba(0, 188, 212, 0.18)",
+                borderWidth: 2,
+                pointRadius: 3
+            }
+        ]
+    },
+    options: {
+        scales: {
+            r: {
+                beginAtZero: true,
+                max: 100,
+                grid: { color: "#333" },
+                pointLabels: { color: "white" },
+                angleLines: { color: "#444" }
+            }
+        },
+        plugins: {
+            legend: { labels: { color: "white" } }
+        }
+    }
+});
+
+/* -----------------------
    UPDATE DISPLAY
 --------------------------*/
+function updateRadar() {
+    let cur = getCurrentStats();
+
+    potentialChart.data.datasets[0].data = [
+        cur.strength, cur.stamina, cur.agility, cur.speed, cur.hp
+    ];
+
+    potentialChart.update();
+}
+
 function updateUI() {
     // Apply fatigue modifiers
     let str = applyFatigueEffects(stats.strength);
@@ -129,7 +231,9 @@ function updateUI() {
     fatigueValue.innerText = stats.fatigue + "%";
     fatigueBar.style.width = stats.fatigue + "%";
 
-    // Save
+    // Update radar chart
+    updateRadar();
+
     localStorage.setItem("stats", JSON.stringify(stats));
 }
 
