@@ -5,74 +5,149 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daily Task System</title>
 
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
-
-<script>
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-}
-</script>
-
 <style>
+/* Global Styles */
 body {
-    background: black;
-    color: white;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: #000; /* pure black background */
+    color: #fff;
+    overflow-x: hidden;
 }
 
-/* Mobile clean look */
+/* Animated Background Particles */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+.particle {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    animation: float 4s ease-in-out infinite;
+}
+
+/* Container */
 .container-mobile {
     max-width: 420px;
     margin: auto;
-    padding: 80px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
 }
 
-/* Title animation */
-h1 {
-    animation: fade 1.3s ease-in-out;
-}
-@keyframes fade {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Center title vertically */
+/* Stacked Title Styles - Black & White */
 .title {
-    padding-top: 120px;
+    padding-top: 120px; /* center vertically */
     text-align: center;
 }
 
-/* Fix navbar on dark mode */
-.navbar {
-    border-bottom: 1px solid #111;
+.title h1 {
+    font-weight: 700;
+    margin: 0;
+    color: #fff; /* white text */
+    animation: fadeSlide 1.5s ease forwards;
 }
+
+/* First line bigger */
+.title h1:first-child {
+    font-size: 3rem;
+    line-height: 1.1;
+}
+
+/* Second line slightly smaller */
+.title h1:last-child {
+    font-size: 2.4rem;
+    line-height: 1.2;
+    margin-bottom: 10px;
+}
+
+.title p {
+    margin-top: 15px;
+    font-size: 1.1rem;
+    color: #ccc; /* light gray subtitle */
+}
+
+/* Fade Slide Animation */
+@keyframes fadeSlide {
+    0% { opacity: 0; transform: translateY(20px);}
+    100% { opacity: 1; transform: translateY(0);}
+}
+
+/* Monochrome Button */
+.btn-start {
+    margin-top: 30px;
+    background: #fff;
+    color: #000;
+    border: 2px solid #fff;
+    border-radius: 50px;
+    padding: 12px 0;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-start:hover {
+    background: #000;
+    color: #fff;
+    border: 2px solid #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+/* Navbar */
+.navbar {
+    background: rgba(0,0,0,0.8) !important;
+    border-bottom: 1px solid #333;
+}
+
+/* Mobile Navbar Spacing */
+.navbar .container-fluid {
+    max-width: 420px;
+    margin: auto;
+}
+
+/* Particles */
+.particle:nth-child(1) { top: 20%; left: 10%; animation-duration: 6s; }
+.particle:nth-child(2) { top: 70%; left: 80%; animation-duration: 8s; }
+.particle:nth-child(3) { top: 50%; left: 40%; animation-duration: 5s; }
+.particle:nth-child(4) { top: 80%; left: 20%; animation-duration: 7s; }
+.particle:nth-child(5) { top: 30%; left: 70%; animation-duration: 6.5s; }
+
 </style>
 </head>
-
 <body>
 
-<!-- Mobile Navbar -->
-<nav class="navbar navbar-dark bg-dark">
-  <div class="container-fluid" style="max-width: 420px; margin:auto;">
-    <a class="navbar-brand" href="index.html">System</a>
+<!-- Particles -->
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
 
+<!-- Mobile Navbar -->
+<nav class="navbar navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="index.html">System</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
       <span class="navbar-toggler-icon"></span>
     </button>
-
     <div class="collapse navbar-collapse" id="navMenu">
       <ul class="navbar-nav mt-3">
-        <li class="nav-item">
-          <a class="nav-link" href="Task.html">Tasks</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="Performances.html">Performances</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="Strategy.html">Strategy</a>
-        </li>
+        <li class="nav-item"><a class="nav-link" href="Task.html">Tasks</a></li>
+        <li class="nav-item"><a class="nav-link" href="Performances.html">Performances</a></li>
+        <li class="nav-item"><a class="nav-link" href="Strategy.html">Strategy</a></li>
       </ul>
     </div>
   </div>
@@ -81,16 +156,13 @@ h1 {
 <!-- Page Content -->
 <div class="container-mobile">
   <div class="title">
-    <h1>Daily Task System</h1>
+    <h1>Daily Task</h1>
+    <h1>System</h1>
     <p>Boost your productivity</p>
-
-    <a href="system1.html" class="btn btn-primary w-100 mt-4">Start</a>
+    <a href="system1.html" class="btn btn-start w-100">Start</a>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
-
-
