@@ -3,71 +3,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Create Tasks</title>
+<title>Task Manager System</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="manifest" href="manifest.json">
-
 <style>
-body { 
-    background: #111; 
-    color: white; 
-    padding-top: 50px; 
-}
-
-/* Better mobile list appearance */
-.list-group-item {
-    background: #222;
-    color: white;
-    border: 1px solid #333;
-}
+body { background:#0b0b0f; color:white; padding:20px; font-family:'Inter', sans-serif; }
+.card { background:#1a1a22; border:none; border-radius:18px; }
+h2, h4 { font-weight:600; }
+.list-group-item { background:#202028; color:white; border:1px solid #333; border-radius:10px; margin-bottom:6px; }
+.btn-round { border-radius:30px; }
+.history-item { background:#14141a; padding:12px; border-radius:10px; margin-bottom:10px; }
+.time-badge { font-size:11px; background:#333; padding:3px 8px; border-radius:6px; margin-left:4px; }
+.action-btn { float:right; margin-left:10px; }
 </style>
 </head>
-
 <body>
+<div class="container" style="max-width:420px;">
 
-<div class="container text-center" style="max-width: 400px;">
-    <h2>Add Your Tasks</h2>
+    <h2 class="text-center mb-4">Task Manager</h2>
 
-    <input id="inputTask" class="form-control mt-3" placeholder="Write a task">
-    <button class="btn btn-success mt-3" id="addTaskBtn">Add</button>
+    <!-- CREATE TASK CARD -->
+    <div class="card p-3 mb-4">
+        <h4>Add New Task</h4>
+        <input id="inputTask" class="form-control mt-3" placeholder="Write a task...">
+        <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-success btn-round w-100" id="addTaskBtn">Add</button>
+            <button class="btn btn-primary btn-round w-100" id="saveBtn">Save to Day 1</button>
+        </div>
+    </div>
 
-    <ul id="taskList" class="list-group mt-3"></ul>
+    <!-- CURRENT TASK LIST -->
+    <div class="card p-3 mb-4">
+        <h4>Today's Tasks</h4>
+        <ul id="taskList" class="list-group mt-3"></ul>
+    </div>
 
-    <button class="btn btn-primary mt-4" id="startBtn">Ready</button>
+    <!-- HISTORY SECTION -->
+    <div class="card p-3 mb-4">
+        <h4>Day 1 History</h4>
+        <div id="historyList" class="mt-3"></div>
+        <button class="btn btn-danger btn-round mt-3" id="clearHistory">Clear History</button>
+    </div>
+
 </div>
 
 <script>
 const inputTask = document.getElementById("inputTask");
 const taskList = document.getElementById("taskList");
-
+const historyList = document.getElementById("historyList");
 let tasks = [];
 
-document.getElementById("addTaskBtn").addEventListener("click", () => {
-    let t = inputTask.value.trim();
-    if (!t) return;
+// Load history on startup
+function loadHistory() {
+    let saved = JSON.parse(localStorage.getItem("historyDay1") || "[]");
+    historyList.innerHTML = "";
 
-    tasks.push(t);
+    saved.forEach((record, index) => {
+        let div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `
+            <strong>${record.text}</strong>
+            <span class="time-badge">${record.time}</span>
+            <button class="btn btn-sm btn-danger action-btn" onclick="deleteHistory(${index})">✕</button>
+        `;
+        historyList.appendChild(div);
+    });
+}
+loadHistory();
+
+// Add New Task
+addTaskBtn.addEventListener("click", () => {
+    let text = inputTask.value.trim();
+    if (!text) return;
+
+    tasks.push(text);
 
     let li = document.createElement("li");
-    li.textContent = t;
     li.className = "list-group-item";
-    taskList.appendChild(li);
+    li.innerHTML = `
+        ${text}
+        <button class="btn btn-sm btn-warning action-btn" onclick="editTask(this)">Edit</button>
+        <button class="btn btn-sm btn-danger action-btn" onclick="removeTask(this)">✕</button>
+    `;
 
+    taskList.appendChild(li);
     inputTask.value = "";
 });
 
-document.getElementById("startBtn").addEventListener("click", () => {
-    if (tasks.length === 0) return alert("Add at least 1 task");
+// Edit Task
+function editTask(btn) {
+    let li = btn.parentElement;
+    let oldText = li.childNodes[0].textContent.trim();
+    let newText = prompt("Edit task:", oldText);
+    if (newText) li.childNodes[0].textContent = newText;
+}
 
+// Remove Task
+function removeTask(btn) {
+    btn.parentElement.remove();
+}
+
+// Save tasks to history
+saveBtn.addEventListener("click", () => {
+    if (tasks.length === 0) return alert("Add at least one task");
+
+    // Save tasks for main body system
     localStorage.setItem("tasks", JSON.stringify(tasks));
     localStorage.setItem("currentTaskIndex", "0");
     localStorage.setItem("day", "1");
 
-    window.location.href = "index.html";
+    // Save to history
+    let saved = JSON.parse(localStorage.getItem("historyDay1") || "[]");
+
+    tasks.forEach(t => {
+        saved.push({ text:t, time:new Date().toLocaleTimeString() });
+    });
+
+    localStorage.setItem("historyDay1", JSON.stringify(saved));
+
+    tasks = [];
+    taskList.innerHTML = "";
+    loadHistory();
+
+    alert("Day 1 tasks saved successfully!");
+});
+
+// Delete a specific history entry
+function deleteHistory(i) {
+    let saved = JSON.parse(localStorage.getItem("historyDay1") || "[]");
+    saved.splice(i, 1);
+    localStorage.setItem("historyDay1", JSON.stringify(saved));
+    loadHistory();
+}
+
+// Clear all history
+clearHistory.addEventListener("click", () => {
+    if (!confirm("Clear all history for Day 1?")) return;
+    localStorage.removeItem("historyDay1");
+    loadHistory();
 });
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
