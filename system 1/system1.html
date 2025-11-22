@@ -181,9 +181,16 @@ done.addEventListener("click", () => {
     // If NO tasks left
     taskText.innerText = "🎉 All tasks cleared!";
     done.style.display = "none";
+
+    // Redirect after 1.2s
+    setTimeout(() => {
+    window.location.href = "index.html"; // <- change this to your page
+}, 1200);
+    
 });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
