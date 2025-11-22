@@ -113,64 +113,66 @@ h1 {
 
 </style>
 </head>
-
 <body>
 
-<div class="container-mobile mt-4">
+<div class="container-mobile">
 
-  <h1 class="text-center mb-4">Your Status</h1>
+    <!-- SYSTEM TITLE PANEL -->
+    <div class="status-card text-center mb-4" style="animation-delay: 0s;">
+        <h1 style="margin:0; font-size: 2rem;">Status Window</h1>
+        <small style="opacity: 0.7;">Anime-Leveling System</small>
+    </div>
 
-  <!-- Strength -->
-  <div class="status-card p-3 mb-3">
-      <div class="d-flex justify-content-between">
-          <strong>Strength</strong>
-          <span id="strengthValue">0</span>
-      </div>
-      <div class="progress mt-1">
-          <div id="strengthBar" class="progress-bar"></div>
-      </div>
-  </div>
+    <!-- MAIN STATS -->
+    <div class="status-card mb-3" style="animation-delay: 0.2s;">
+        <div class="d-flex justify-content-between">
+            <strong>Strength</strong>
+            <span id="strengthValue">0</span>
+        </div>
+        <div class="progress mt-2">
+            <div id="strengthBar" class="progress-bar"></div>
+        </div>
+    </div>
 
-  <!-- Stamina -->
-  <div class="status-card p-3 mb-3">
-      <div class="d-flex justify-content-between">
-          <strong>Stamina</strong>
-          <span id="staminaValue">0</span>
-      </div>
-      <div class="progress mt-1">
-          <div id="staminaBar" class="progress-bar"></div>
-      </div>
-  </div>
+    <div class="status-card mb-3" style="animation-delay: 0.35s;">
+        <div class="d-flex justify-content-between">
+            <strong>Stamina</strong>
+            <span id="staminaValue">0</span>
+        </div>
+        <div class="progress mt-2">
+            <div id="staminaBar" class="progress-bar"></div>
+        </div>
+    </div>
 
-  <!-- Agility -->
-  <div class="status-card p-3 mb-3">
-      <div class="d-flex justify-content-between">
-          <strong>Agility</strong>
-          <span id="agilityValue">0</span>
-      </div>
-      <div class="progress mt-1">
-          <div id="agilityBar" class="progress-bar"></div>
-      </div>
-  </div>
+    <div class="status-card mb-3" style="animation-delay: 0.5s;">
+        <div class="d-flex justify-content-between">
+            <strong>Agility</strong>
+            <span id="agilityValue">0</span>
+        </div>
+        <div class="progress mt-2">
+            <div id="agilityBar" class="progress-bar"></div>
+        </div>
+    </div>
 
-  <!-- Fatigue -->
-  <div class="status-card p-3 mb-3">
-      <div class="d-flex justify-content-between">
-          <strong>Fatigue</strong>
-          <span id="fatigueValue">0%</span>
-      </div>
-      <div class="progress mt-1">
-          <div id="fatigueBar" class="progress-bar bg-danger"></div>
-      </div>
-  </div>
+    <!-- FATIGUE PANEL -->
+    <div class="status-card mb-4" style="animation-delay: 0.65s;">
+        <div class="d-flex justify-content-between">
+            <strong>Fatigue</strong>
+            <span id="fatigueValue">0%</span>
+        </div>
+        <div class="progress mt-2">
+            <div id="fatigueBar" class="progress-bar bg-danger"></div>
+        </div>
+    </div>
 
-  <!-- Radar Chart Section -->
-  <div class="status-card p-3 mb-4 text-center">
-      <strong class="d-block mb-2">Potential Overview</strong>
-      <canvas id="potentialChart" height="260"></canvas>
-  </div>
+    <!-- RADAR CHART PANEL -->
+    <div class="status-card text-center mb-4" style="animation-delay: 0.8s;">
+        <strong style="font-size: 1.2rem;">Potential Overview</strong>
+        <canvas id="potentialChart" height="260" class="mt-3"></canvas>
+    </div>
 
 </div>
+
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -334,3 +336,4 @@ setInterval(() => {
 
 </body>
 </html>
+
