@@ -3,359 +3,315 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Performances</title>
+<title>Solo Leveling HUD</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+/* GLOBAL */
 body {
     background: #000;
     color: #fff;
     font-family: 'Segoe UI', sans-serif;
+    overflow-x: hidden;
 }
-
-/* Mobile layout */
 .container-mobile {
-    max-width: 420px;
+    max-width: 480px;
     margin: auto;
+    padding: 20px;
 }
 
-/* Anime hologram card */
+/* PAGE TITLE */
+.page-title {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.page-title h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #00ffff;
+    text-shadow: 0 0 8px #00ffff;
+}
+
+/* HUD PANEL */
 .status-card {
-    background: rgba(20, 20, 20, 0.7);
+    background: rgba(20,20,20,0.6);
     backdrop-filter: blur(6px);
-    border: 1px solid rgba(0, 255, 255, 0.25);
-    border-radius: 18px;
-    padding: 18px;
-    box-shadow: 0 0 12px rgba(0,255,255,0.15);
+    border: 1px solid rgba(0,255,255,0.25);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 0 30px rgba(0,255,255,0.3);
     position: relative;
     overflow: hidden;
-    transform: translateY(0);
     animation: float 4s ease-in-out infinite;
 }
 
-/* Light glow edges */
+/* FLOATING PANEL */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0px); }
+}
+
+/* SCAN-LINE */
 .status-card::before {
     content: "";
     position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 2px;
-    background: linear-gradient(135deg,
-        rgba(0,255,255,0.1),
-        rgba(100,100,255,0.15),
-        rgba(0,255,255,0.1)
+    top:0; left:0; right:0; bottom:0;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.02),
+        rgba(255,255,255,0.02) 1px,
+        transparent 1px,
+        transparent 4px
     );
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
     pointer-events: none;
+    animation: scan 2s linear infinite;
+}
+@keyframes scan {
+    0% { background-position-y: 0; }
+    100% { background-position-y: 5px; }
 }
 
-/* Floating anime UI effect */
-@keyframes float {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
-    100% { transform: translateY(0); }
+/* PANEL FLICKER */
+.status-card::after {
+    content: "";
+    position: absolute;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(255,255,255,0.03);
+    pointer-events: none;
+    animation: flicker 1.5s infinite;
+}
+@keyframes flicker {
+    0%,19%,21%,23%,25%,54%,56%,100% { opacity:0.03; }
+    20%,22%,24%,55% { opacity:0.1; }
 }
 
-/* Anime-style stat label text */
-.status-card strong {
-    font-size: 1.1rem;
-    letter-spacing: 0.5px;
+/* PARTICLES */
+.particles, .level-up-particles {
+    position: absolute;
+    top:0; left:0; right:0; bottom:0;
+    pointer-events: none;
+    overflow: visible;
+    z-index:0;
+}
+.particles div, .level-up-particles div {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #00ffff;
+    border-radius: 50%;
+}
+.particles div {
+    opacity: 0.8;
+    animation: particleFloat 3s linear infinite;
+}
+@keyframes particleFloat {
+    0% { transform: translateY(0px) translateX(0px); opacity: 0; }
+    10% { opacity: 0.8; }
+    50% { transform: translateY(-40px) translateX(10px); opacity: 0.4; }
+    100% { transform: translateY(-80px) translateX(20px); opacity: 0; }
+}
+.level-up-particles div {
+    opacity:0;
+    animation: burst 0.8s forwards;
+}
+@keyframes burst {
+    0% { transform: translate(0,0) scale(0.5); opacity:1; }
+    50% { opacity:1; }
+    100% { transform: translate(var(--x), var(--y)) scale(1); opacity:0; }
 }
 
-/* Futuristic progress bar */
-.progress {
-    height: 12px;
-    background: #111;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.1);
+/* TOP PANEL */
+.top-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    position: relative;
+    z-index:1;
+}
+.char-info h2 {
+    margin:0; font-size:1.4rem; color:#00ffff; text-shadow:0 0 6px #00ffff;
+}
+.char-info small { color:#0ff; }
+.char-info div { margin-top:4px; font-size:0.95rem; }
+
+/* RADAR CHART */
+.radar-container {
+    width:48%;
+}
+.radar-container canvas {
+    border:1px solid rgba(0,255,255,0.3);
+    box-shadow:0 0 20px #00ffff;
+    animation: radarShimmer 2s infinite linear alternate;
+}
+@keyframes radarShimmer {
+    0% { box-shadow:0 0 10px #00ffff; }
+    50% { box-shadow:0 0 22px #00ffff; }
+    100% { box-shadow:0 0 10px #00ffff; }
 }
 
+/* STATS BARS */
+.stat-bar { margin-bottom:12px; position:relative; }
+.stat-bar .progress {
+    height:12px; background:#111; border-radius:10px; overflow:hidden; border:1px solid rgba(255,255,255,0.1);
+}
 .progress-bar {
-    background: linear-gradient(90deg, #00eaff, #0077ff);
-    height: 100%;
-    width: 0%;
-    border-radius: 10px;
-    box-shadow: 0 0 10px #00eaff;
-    transition: width 0.6s ease-out;
+    background:linear-gradient(90deg,#00eaff,#0077ff);
+    height:100%; width:0%; border-radius:10px;
+    box-shadow:0 0 10px #00eaff; transition: width 0.6s ease-out;
+}
+.progress-bar.bg-danger { background:linear-gradient(90deg,#ff0033,#ff7700); box-shadow:0 0 10px #ff0033; }
+.progress-bar.animate { animation: barGlow 1s ease forwards; }
+@keyframes barGlow {
+    0% { box-shadow:0 0 4px #00ffff; }
+    50% { box-shadow:0 0 14px #00ffff; }
+    100% { box-shadow:0 0 8px #00ffff; }
 }
 
-/* Danger for fatigue */
-.progress-bar.bg-danger {
-    background: linear-gradient(90deg, #ff0033, #ff7700);
-    box-shadow: 0 0 10px #ff0033;
+/* LEVEL BAR */
+.level-bar-container {
+    margin-top:15px; background:#111; border-radius:12px; height:16px; overflow:hidden; border:1px solid rgba(0,255,255,0.3);
+}
+.level-bar {
+    height:100%; width:0%; background:linear-gradient(90deg,#00ffff,#0077ff); box-shadow:0 0 14px #00ffff; transition: width 0.6s ease-out; border-radius:12px;
 }
 
-/* Title */
-h1 {
-    text-align: center;
-    margin-top: 25px;
-    font-size: 2.2rem;
-    letter-spacing: 1px;
-    font-weight: 700;
+/* MOBILE RESPONSIVE */
+@media(max-width:480px){
+    .top-panel { flex-direction:column; align-items:center; }
+    .radar-container { width:80%; margin-top:15px; }
+    .char-info { text-align:center; }
 }
-
-.progress-bar {
-    animation: glowPulse 2s infinite ease-in-out;
-}
-
-@keyframes glowPulse {
-    0% { box-shadow: 0 0 6px currentColor; }
-    50% { box-shadow: 0 0 14px currentColor; }
-    100% { box-shadow: 0 0 6px currentColor; }
-}
-
 </style>
 </head>
 <body>
-<div class="container-mobile mt-4">
 
-    <!-- 🔹 PAGE TITLE -->
-    <div class="text-center mb-4">
-        <h1 style="margin:0; font-size:1.8rem;">Status Window </h1>
-        <small style="opacity:0.7;">Leveling System</small>
+<div class="container-mobile">
+
+    <div class="page-title">
+        <h1>Status & Leveling System</h1>
     </div>
 
-    <!-- 🔹 SINGLE HORIZONTAL SYSTEM PANEL -->
-    <div class="status-card p-3">
+    <div class="status-card">
+        <div class="particles"></div>
+        <div class="level-up-particles"></div>
 
-        <!-- TOP HORIZONTAL CONTENT -->
-        <div class="d-flex justify-content-between align-items-start mb-4">
-
-            <!-- LEFT: CHARACTER INFO -->
-            <div style="width: 50%;">
-                <h2 style="margin:0; font-size:1.4rem;">xxx</h2>
-                <small style="opacity:0.7;">Human</small>
-
-                <div class="mt-3" style="font-size:0.95rem;">
-                    <div><strong>Age:</strong> xxx</div>
-                    <div><strong>Height:</strong> xxx cm</div>
-                    <div><strong>Weight:</strong> xxx kg</div>
-                </div>
+        <div class="top-panel">
+            <div class="char-info">
+                <h2>Jinwoo</h2>
+                <div>Age: 24</div>
+                <div>Height: 180cm</div>
+                <div>Weight: 70kg</div>
             </div>
-
-            <!-- RIGHT: RADAR CHART -->
-            <div style="width: 48%; text-align:center;">
-                <canvas id="potentialChart" height="180"></canvas>
-            </div>
-
-        </div>
-
-        <!-- 🔹 STATUS BARS -->
-        <div class="mb-3">
-            <div class="d-flex justify-content-between">
-                <strong>Strength</strong>
-                <span id="strengthValue">0</span>
-            </div>
-            <div class="progress mt-1">
-                <div id="strengthBar" class="progress-bar"></div>
+            <div class="radar-container">
+                <canvas id="potentialChart" height="160"></canvas>
             </div>
         </div>
 
-        <div class="mb-3">
-            <div class="d-flex justify-content-between">
-                <strong>Stamina</strong>
-                <span id="staminaValue">0</span>
-            </div>
-            <div class="progress mt-1">
-                <div id="staminaBar" class="progress-bar"></div>
-            </div>
+        <div class="stat-bar">
+            <strong>Strength</strong>
+            <div class="progress"><div id="strengthBar" class="progress-bar"></div></div>
+        </div>
+        <div class="stat-bar">
+            <strong>Stamina</strong>
+            <div class="progress"><div id="staminaBar" class="progress-bar"></div></div>
+        </div>
+        <div class="stat-bar">
+            <strong>Agility</strong>
+            <div class="progress"><div id="agilityBar" class="progress-bar"></div></div>
+        </div>
+        <div class="stat-bar">
+            <strong>Fatigue</strong>
+            <div class="progress"><div id="fatigueBar" class="progress-bar bg-danger"></div></div>
         </div>
 
-        <div class="mb-3">
-            <div class="d-flex justify-content-between">
-                <strong>Agility</strong>
-                <span id="agilityValue">0</span>
-            </div>
-            <div class="progress mt-1">
-                <div id="agilityBar" class="progress-bar"></div>
-            </div>
-        </div>
-
-        <div class="mb-4">
-            <div class="d-flex justify-content-between">
-                <strong>Fatigue</strong>
-                <span id="fatigueValue">0%</span>
-            </div>
-            <div class="progress mt-1">
-                <div id="fatigueBar" class="progress-bar bg-danger"></div>
-            </div>
+        <div class="level-bar-container">
+            <div id="levelBar" class="level-bar"></div>
         </div>
 
     </div>
-
 </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-// Load stats from storage
-let stats = JSON.parse(localStorage.getItem("stats")) || {
-    strength: 40,
-    stamina: 70,
-    agility: 55,
-    fatigue: 20,
-    hp: 80,
-    speed: 65
-};
+// Example stats
+let stats = {strength:40, stamina:70, agility:55, fatigue:20};
+const strengthBar = document.getElementById("strengthBar");
+const staminaBar = document.getElementById("staminaBar");
+const agilityBar = document.getElementById("agilityBar");
+const fatigueBar = document.getElementById("fatigueBar");
+const levelBar = document.getElementById("levelBar");
 
-// Save stats
-localStorage.setItem("stats", JSON.stringify(stats));
-
-/* -----------------------
-   POTENTIAL (fixed values)
---------------------------*/
-let potential = {
-    strength: 90,
-    stamina: 85,
-    agility: 88,
-    speed: 92,
-    hp: 95
-};
-
-/* -----------------------
-   FATIGUE EFFECT SYSTEM
---------------------------*/
-function applyFatigueEffects(base) {
-    let f = stats.fatigue;
-
-    if (f > 70) return Math.round(base * 0.8); // –20%
-    if (f > 40) return Math.round(base * 0.9); // –10%
-    return base; // Normal
-}
-
-/* -----------------------
-   CURRENT VALUES (for radar)
---------------------------*/
-function getCurrentStats() {
-    return {
-        strength: applyFatigueEffects(stats.strength),
-        stamina: applyFatigueEffects(stats.stamina),
-        agility: applyFatigueEffects(stats.agility),
-        speed: applyFatigueEffects(stats.speed),
-        hp: stats.hp
-    };
-}
-
-/* -----------------------
-   INIT RADAR CHART
---------------------------*/
+// Radar chart
 const radarCanvas = document.getElementById("potentialChart");
-let current = getCurrentStats();
-
+const potential = {strength:90, stamina:85, agility:88, speed:92, hp:95};
+let current = {...stats, speed:65, hp:80};
 const potentialChart = new Chart(radarCanvas, {
-    type: "radar",
-    data: {
-        labels: ["Strength", "Stamina", "Agility", "Speed", "HP"],
-        datasets: [
-            {
-                label: "Current",
-                data: [
-                    current.strength,
-                    current.stamina,
-                    current.agility,
-                    current.speed,
-                    current.hp
-                ],
-                borderColor: "#4caf50",
-                backgroundColor: "rgba(76, 175, 80, 0.25)",
-                borderWidth: 2,
-                pointRadius: 3
-            },
-            {
-                label: "Potential",
-                data: [
-                    potential.strength,
-                    potential.stamina,
-                    potential.agility,
-                    potential.speed,
-                    potential.hp
-                ],
-                borderColor: "#00bcd4",
-                backgroundColor: "rgba(0, 188, 212, 0.18)",
-                borderWidth: 2,
-                pointRadius: 3
-            }
+    type:"radar",
+    data:{
+        labels:["Strength","Stamina","Agility","Speed","HP"],
+        datasets:[
+            {label:"Current", data:[current.strength,current.stamina,current.agility,current.speed,current.hp], borderColor:"#4caf50", backgroundColor:"rgba(76,175,80,0.25)", borderWidth:2, pointRadius:3},
+            {label:"Potential", data:[potential.strength,potential.stamina,potential.agility,potential.speed,potential.hp], borderColor:"#00bcd4", backgroundColor:"rgba(0,188,212,0.18)", borderWidth:2, pointRadius:3}
         ]
     },
-    options: {
-        scales: {
-            r: {
-                beginAtZero: true,
-                max: 100,
-                grid: { color: "#333" },
-                pointLabels: { color: "white" },
-                angleLines: { color: "#444" }
-            }
-        },
-        plugins: {
-            legend: { labels: { color: "white" } }
-        }
-    }
+    options:{scales:{r:{beginAtZero:true,max:100,grid:{color:"#333"},pointLabels:{color:"white"},angleLines:{color:"#444"}}}, plugins:{legend:{labels:{color:"white"}}}}
 });
 
-/* -----------------------
-   UPDATE DISPLAY
---------------------------*/
-function updateRadar() {
-    let cur = getCurrentStats();
-
-    potentialChart.data.datasets[0].data = [
-        cur.strength, cur.stamina, cur.agility, cur.speed, cur.hp
-    ];
-
-    potentialChart.update();
-}
-
-function updateUI() {
-    // Apply fatigue modifiers
-    let str = applyFatigueEffects(stats.strength);
-    let sta = applyFatigueEffects(stats.stamina);
-    let agi = applyFatigueEffects(stats.agility);
-
-    strengthValue.innerText = str + "%";
-    staminaValue.innerText = sta + "%";
-    agilityValue.innerText = agi + "%";
-
-    strengthBar.style.width = str + "%";
-    staminaBar.style.width = sta + "%";
-    agilityBar.style.width = agi + "%";
-
-    // Fatigue display
-    fatigueValue.innerText = stats.fatigue + "%";
-    fatigueBar.style.width = stats.fatigue + "%";
-
-    // Update radar chart
-    updateRadar();
-
-    localStorage.setItem("stats", JSON.stringify(stats));
-}
-
-updateUI();
-
-/* -----------------------
-   AUTO FATIGUE RECOVERY
---------------------------*/
-setInterval(() => {
-    if (stats.fatigue > 0) {
-        stats.fatigue -= 1;
-        updateUI();
+// Floating particles
+const particleContainer = document.querySelector('.status-card .particles');
+function createParticles(count=20){
+    for(let i=0;i<count;i++){
+        const p = document.createElement('div');
+        p.style.left = Math.random()*100 + '%';
+        p.style.top = Math.random()*100 + '%';
+        p.style.animationDuration = (2+Math.random()*3) + 's';
+        p.style.width = (2+Math.random()*3)+'px';
+        p.style.height = p.style.width;
+        particleContainer.appendChild(p);
     }
-}, 60000); // Every 1 minute
+}
+createParticles(25);
+
+// Level-up particle burst
+const burstContainer = document.querySelector('.level-up-particles');
+function levelUpBurst(count=15){
+    for(let i=0;i<count;i++){
+        const p = document.createElement('div');
+        const x = (Math.random()-0.5)*100 + "px";
+        const y = (Math.random()-0.5)*100 + "px";
+        p.style.setProperty('--x', x);
+        p.style.setProperty('--y', y);
+        p.style.left="50%";
+        p.style.top="50%";
+        burstContainer.appendChild(p);
+        setTimeout(()=>p.remove(),800);
+    }
+}
+
+// Demo: automatically level up every 5 seconds
+setInterval(()=>{
+    levelUpBurst();
+    let levelPercent = Math.min(100, parseInt(levelBar.style.width||0) + 10);
+    levelBar.style.width = levelPercent + "%";
+
+    // Update stat bars with glow
+    [ ["strength", stats.strength], ["stamina", stats.stamina], ["agility", stats.agility] ].forEach(([id,val])=>{
+        const bar = document.getElementById(id+"Bar");
+        bar.style.width = val+"%";
+        bar.classList.add("animate");
+        setTimeout(()=>bar.classList.remove("animate"),1000);
+    });
+
+    potentialChart.data.datasets[0].data = [stats.strength,stats.stamina,stats.agility,65,80];
+    potentialChart.update();
+
+},5000);
 
 </script>
 
 </body>
 </html>
-
-
-
-
-
