@@ -177,21 +177,34 @@ done.addEventListener("click", () => {
     }
 
     // Finish day
-    taskText.innerText = "🎉 Day " + day + " Completed!";
-    done.style.display = "none";
+taskText.innerText = "🎉 Day " + day + " Completed!";
+done.style.display = "none";
 
-    // Save stats
-    localStorage.setItem("stats", JSON.stringify(stats));
+// Wait 1.5s then create NEW tasks
+setTimeout(() => {
 
-    setTimeout(() => {
-        day++;
-        index = 0;
-        localStorage.setItem("day", day);
-        localStorage.setItem("currentTaskIndex", 0);
+    day++;
+    localStorage.setItem("day", day);
 
-        taskText.innerText = "New day unlocked!";
-        done.style.display = "block";
-    }, 1500);
+    // ❗ DELETE yesterday's tasks
+    tasks = [];
+
+    // ❗ GENERATE NEW TASKS
+    tasks = generateNewDayTasks();
+
+    // SAVE NEW TASKS
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+    // RESET INDEX
+    index = 0;
+    localStorage.setItem("currentTaskIndex", 0);
+
+    // SHOW FIRST NEW TASK OF THE DAY
+    taskText.innerText = tasks[0];
+    done.style.display = "block";
+
+}, 1500);
+
 
 });
 </script>
@@ -199,5 +212,6 @@ done.addEventListener("click", () => {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
 
