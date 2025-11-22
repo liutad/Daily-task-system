@@ -7,6 +7,7 @@ self.addEventListener("install", e => {
         "system1.html",
         "Performances.html",
         "Strategy.html",
+        "Login.html",
         "manifest.json",
         "icons/icon-192.png",
         "icons/icon-512.png"
@@ -20,3 +21,4 @@ self.addEventListener("fetch", e => {
     caches.match(e.request).then(res => res || fetch(e.request))
   );
 });
+
