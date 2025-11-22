@@ -66,7 +66,6 @@ setTimeout(() => {
 // Get saved data
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 let index = Number(localStorage.getItem("currentTaskIndex")) || 0;
-let day = Number(localStorage.getItem("day")) || 1;
 
 // Load stats
 let stats = JSON.parse(localStorage.getItem("stats")) || {
@@ -143,7 +142,7 @@ function increaseStats(task) {
 // UPDATE UI
 // -------------------
 function update() {
-    tasksTitle.innerText = "Your tasks";
+    dayTitle.innerText = "Day 1";  // FIXED — no more tasksTitle error
 
     if (tasks.length === 0) {
         taskText.innerHTML = "No tasks found.<br>Add tasks first.";
@@ -164,31 +163,27 @@ update();
 // -------------------
 done.addEventListener("click", () => {
 
-    // 📌 Increase stats FIRST
+    // Increase stats
     increaseStats(tasks[index]);
 
-    index++;
+    // Remove completed task from list
+    tasks.splice(index, 1);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
 
-    // Continue tasks
-    if (index < tasks.length) {
-        localStorage.setItem("currentTaskIndex", index);
-        update();
+    // If there are still tasks left → show next one
+    if (tasks.length > 0) {
+        index = 0;
+        localStorage.setItem("currentTaskIndex", 0);
+        taskText.innerText = tasks[0];
         return;
     }
 
-    // Finish day
-taskText.innerText = "🎉 Tasks" + " Completed!";
-done.style.display = "none";
-
-
-
+    // If NO tasks left
+    taskText.innerText = "🎉 All tasks cleared!";
+    done.style.display = "none";
 });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-
-
-
