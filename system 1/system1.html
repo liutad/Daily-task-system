@@ -143,7 +143,7 @@ function increaseStats(task) {
 // UPDATE UI
 // -------------------
 function update() {
-    dayTitle.innerText = "Day " + day;
+    tasksTitle.innerText = "Your tasks";
 
     if (tasks.length === 0) {
         taskText.innerHTML = "No tasks found.<br>Add tasks first.";
@@ -177,33 +177,9 @@ done.addEventListener("click", () => {
     }
 
     // Finish day
-taskText.innerText = "🎉 Day " + day + " Completed!";
+taskText.innerText = "🎉 Tasks" + " Completed!";
 done.style.display = "none";
 
-// Wait 1.5s then create NEW tasks
-setTimeout(() => {
-
-    day++;
-    localStorage.setItem("day", day);
-
-    // ❗ DELETE yesterday's tasks
-    tasks = [];
-
-    // ❗ GENERATE NEW TASKS
-    tasks = generateNewDayTasks();
-
-    // SAVE NEW TASKS
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-
-    // RESET INDEX
-    index = 0;
-    localStorage.setItem("currentTaskIndex", 0);
-
-    // SHOW FIRST NEW TASK OF THE DAY
-    taskText.innerText = tasks[0];
-    done.style.display = "block";
-
-}, 1500);
 
 
 });
@@ -212,6 +188,7 @@ setTimeout(() => {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
 
 
