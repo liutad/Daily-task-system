@@ -1,8 +1,495 @@
 <!DOCTYPE html>
-<html>
-<head><title>Strategy</title></head>
-<body style="background:#000;color:white;text-align:center;padding-top:100px;">
-<h1>Strategy Page</h1>
-<p>Coming soon...</p>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Strategy — Quest System (Solo-Leveling Style)</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+:root{
+  --bg1:#000011;
+  --bg2:#000016;
+  --glow:#0af;
+  --muted: rgba(255,255,255,0.12);
+  --accent: #00bfff;
+}
+
+/* App background & layout */
+html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#eaf6ff;font-family:Inter,Segoe UI,system-ui,Arial;}
+.container{max-width:980px;margin:18px auto;padding:16px;}
+.app-header{display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:14px;}
+.brand{display:flex;gap:12px;align-items:center;}
+.logo{
+  width:56px;height:56px;border-radius:12px;
+  background:linear-gradient(135deg,#022 20%, #013 60%);
+  box-shadow:0 6px 22px rgba(0,170,255,0.08), inset 0 0 30px rgba(0,170,255,0.06);
+  display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--glow);
+  border:1px solid rgba(0,170,255,0.12);
+  text-shadow:0 0 8px rgba(10,170,255,0.25);
+}
+
+/* XP / Level */
+.status {
+  display:flex;align-items:center;gap:12px;
+}
+.level-badge{
+  width:72px;height:72px;border-radius:14px;background:linear-gradient(180deg,#001022,#001834);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(10,140,255,0.35);
+  box-shadow:0 0 20px rgba(10,150,255,0.08);font-weight:700;
+}
+.xp-wrap{min-width:320px;}
+.xp-bar{
+  height:16px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.03);
+}
+.xp-fill{
+  height:100%;width:0%;background:linear-gradient(90deg,#008cff,#0af);transition:width 700ms ease;
+  box-shadow:0 0 18px rgba(10,170,255,0.22);
+}
+
+/* Quest list */
+.quest-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px;}
+.quest-card{
+  background:linear-gradient(180deg,rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.04);
+  box-shadow:0 6px 20px rgba(0,0,0,0.5);
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.quest-card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(0,170,255,0.06);}
+
+/* badges */
+.badge-daily{background:linear-gradient(90deg,#2a8bff,#4bd8ff);color:#001;box-shadow:0 6px 18px rgba(10,170,255,0.06);}
+.badge-boss{background:linear-gradient(90deg,#ff4b4b,#ff8b4b);color:white;box-shadow:0 6px 18px rgba(255,80,80,0.06);}
+.badge-easy{background:linear-gradient(90deg,#6bffb1,#00c78a);color:#003;}
+
+/* progress small */
+.small-progress{height:10px;border-radius:999px;background:var(--muted);overflow:hidden;margin:8px 0;}
+.small-progress .fill{height:100%;background:linear-gradient(90deg,#008cff,#0af);width:0%;transition:width .5s ease;box-shadow:0 0 12px rgba(10,170,255,0.18)}
+
+/* modal styling */
+.modal-content { background: linear-gradient(180deg,#001224,#001430); border-radius:18px; border:1px solid rgba(10,140,255,0.12); color:#e8f8ff; }
+.quest-modal-header{display:flex;align-items:center;gap:12px;}
+.quest-icon{width:72px;height:72px;border-radius:12px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 0 20px rgba(10,170,255,0.06);}
+.modal-actions{display:flex;gap:8px;}
+
+/* buttons */
+.btn-solo{
+  background:linear-gradient(90deg,#008cff,#0af);border:none;color:#001;font-weight:700;border-radius:10px;
+  box-shadow:0 6px 20px rgba(10,170,255,0.08);
+}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#eaf6ff;border-radius:10px}
+.btn-danger{background:linear-gradient(90deg,#ff5a5a,#ff915a);border:none;color:#111;font-weight:700;border-radius:10px;}
+
+/* confetti & complete animation */
+.complete-burst{
+  position:fixed;left:50%;top:28%;transform:translateX(-50%);z-index:2000;pointer-events:none;
+  animation:popfade 1.2s ease forwards;
+}
+@keyframes popfade {
+  0%{transform:translate(-50%, -20%) scale(.8);opacity:0}
+  25%{opacity:1;transform:translate(-50%,0) scale(1.05)}
+  100%{opacity:0;transform:translate(-50%,-30%) scale(1)}
+}
+
+/* small utilities */
+.meta{font-size:0.86rem;color:rgba(255,255,255,0.6)}
+.row-between{display:flex;justify-content:space-between;align-items:center}
+
+/* loading splash */
+.splash{
+  position:fixed;inset:0;background:linear-gradient(180deg,#001018,#000010);display:flex;align-items:center;justify-content:center;z-index:4000;
+  color:var(--glow);font-size:18px;flex-direction:column;gap:12px;
+}
+.splash .loader{width:86px;height:86px;border-radius:18px;background:linear-gradient(135deg,#01173a,#00223d);display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(0,170,255,0.08);border:1px solid rgba(10,140,255,0.12)}
+.splash.hidden{display:none}
+
+/* responsive */
+@media(max-width:720px){
+  .quest-grid{grid-template-columns:1fr}
+  .xp-wrap{min-width:200px}
+}
+
+</style>
+</head>
+<body>
+
+<!-- LOADING SPLASH -->
+<div id="splash" class="splash">
+  <div class="loader">
+    <div style="text-align:center">
+      <div style="font-size:22px;font-weight:800">ARISE</div>
+      <div style="font-size:11px;margin-top:6px;color:rgba(255,255,255,0.4)">Quest System</div>
+    </div>
+  </div>
+  <div class="meta">Loading Quests...</div>
+</div>
+
+<div class="container" id="app" style="opacity:0;transition:opacity .4s ease">
+  <div class="app-header">
+    <div class="brand">
+      <div class="logo">SL</div>
+      <div>
+        <div style="font-weight:800;font-size:18px">Strategy — Questboard</div>
+        <div class="meta">Solo-Leveling style quests & progression</div>
+      </div>
+    </div>
+
+    <div class="status">
+      <div class="level-badge" id="levelBadge">
+        <div style="font-size:20px" id="levelNum">1</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6)">Level</div>
+      </div>
+      <div class="xp-wrap">
+        <div class="row-between" style="margin-bottom:6px">
+          <div class="meta">XP: <span id="xpText">0/100</span></div>
+          <div class="meta">Coins: <strong id="coins">0</strong></div>
+        </div>
+        <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+    <button class="btn btn-ghost" id="addDemoQuest">+ Add Demo Quest</button>
+    <button class="btn btn-ghost" id="resetAll">Reset All</button>
+    <div style="flex:1"></div>
+    <div class="meta" id="lastSaved">Saved</div>
+  </div>
+
+  <!-- Quest Grid -->
+  <div class="quest-grid" id="questGrid" style="margin-top:14px"></div>
+</div>
+
+<!-- Quest Modal -->
+<div class="modal fade" id="questModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-3">
+      <div class="quest-modal-header">
+        <div class="quest-icon" id="modalIcon">💪</div>
+        <div style="flex:1">
+          <div id="modalTitle" style="font-size:20px;font-weight:800"></div>
+          <div class="meta" id="modalType">Quest</div>
+          <div class="meta" id="modalDesc" style="margin-top:8px"></div>
+        </div>
+        <div style="width:80px;text-align:right">
+          <div class="meta">Reward</div>
+          <div id="modalReward" style="font-weight:800;font-size:18px">+0 XP</div>
+        </div>
+      </div>
+
+      <hr style="border-top:1px solid rgba(255,255,255,0.03)">
+
+      <div>
+        <div class="row-between">
+          <div class="meta">Progress</div>
+          <div class="meta"><span id="modalProgressText">0/100</span></div>
+        </div>
+        <div class="small-progress"><div class="fill" id="modalSmallFill"></div></div>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn-solo btn w-100" id="btnPlus10">+10</button>
+          <button class="btn-solo btn w-100" id="btnPlus1">+1</button>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+          <input type="number" id="manualAdd" placeholder="+X" class="form-control" style="max-width:120px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);color:#eaf6ff" />
+          <button class="btn btn-ghost" id="btnAddManual">Add</button>
+          <div style="flex:1"></div>
+          <button class="btn btn-danger" id="btnResetProgress">Reset</button>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn btn-solo w-100" id="btnMarkComplete">Mark Complete</button>
+          <button class="btn btn-ghost w-100" id="btnCloseModal" data-bs-dismiss="modal">Close</button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Confetti container -->
+<div id="confettiRoot"></div>
+
+<script>
+// ---------- DATA & STATE ----------
+let defaultQuests = [
+  { id:'saitama', name:'Saitama Training', type:'daily', icon:'💪', desc:'100 Pushups / 100 Situps / 100 Squats / 10km Run', goal:100, xpPer:1, coinReward:25, difficulty:'hard' },
+  { id:'push-boost', name:'Pushup Set', type:'quest', icon:'🟦', desc:'Do 50 pushups in sets.', goal:50, xpPer:2, coinReward:12, difficulty:'easy' },
+  { id:'boss-goblin', name:'Goblin Slayer (Boss)', type:'boss', icon:'👹', desc:'Defeat the Goblin Boss: 1 epic battle', goal:1, xpPer:300, coinReward:200, difficulty:'boss' }
+];
+
+let state = {
+  quests: [],         // quests array
+  progress: {},       // id -> progress number
+  level: 1,
+  xp: 0,
+  coins: 0,
+  lastSaved: null,
+  streak: 0,          // daily streak for daily quests
+};
+
+// localStorage keys
+const KEY = 'arise_quest_v1';
+
+// ---------- UTILS ----------
+function saveState(){
+  localStorage.setItem(KEY, JSON.stringify(state));
+  state.lastSaved = new Date().toLocaleString();
+  document.getElementById('lastSaved').innerText = 'Saved ' + state.lastSaved;
+}
+function loadState(){
+  let raw = localStorage.getItem(KEY);
+  if(raw){
+    try{ Object.assign(state, JSON.parse(raw)); }catch(e){}
+  } else {
+    // initial seeding
+    state.quests = defaultQuests.slice();
+    defaultQuests.forEach(q=> state.progress[q.id] = 0);
+  }
+}
+function xpToNext(level){
+  // simple formula: base 100 * (1.25 ^ (level-1))
+  return Math.floor(100 * Math.pow(1.25, level-1));
+}
+function gainXP(amount){
+  // sound & visual
+  playSound('xp');
+  state.xp += amount;
+  // level up loop
+  while(state.xp >= xpToNext(state.level)){
+    state.xp -= xpToNext(state.level);
+    state.level += 1;
+    playSound('level');
+    showLevelUp(state.level);
+  }
+  updateUI();
+  saveState();
+}
+function earnCoins(n){ state.coins += n; updateUI(); playSound('coin'); saveState(); }
+
+// ---------- SOUNDS (WebAudio simple) ----------
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(freq, type='sine', dur=0.12, gain=0.12){
+  try{
+    let o = audioCtx.createOscillator();
+    let g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.value = gain;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    o.stop(audioCtx.currentTime + dur);
+  } catch(e){}
+}
+function playSound(name){
+  // small mapping
+  if(!audioCtx) return;
+  if(name==='xp'){ playTone(880,'sine',0.08,0.06); playTone(1320,'sine',0.06,0.04); }
+  if(name==='level'){ playTone(540,'sawtooth',0.18,0.14); playTone(720,'sine',0.18,0.12); }
+  if(name==='complete'){ playTone(1200,'triangle',0.12,0.12); playTone(1600,'sine',0.08,0.06); }
+  if(name==='coin'){ playTone(880,'square',0.06,0.06); playTone(1100,'sine',0.06,0.05); }
+}
+
+// ---------- VISUAL EFFECTS ----------
+function showConfetti(){
+  // small confetti burst using emoji nodes
+  const root = document.getElementById('confettiRoot');
+  const wrap = document.createElement('div'); wrap.className='complete-burst';
+  const emojis = ['🎉','✨','🔥','💥','⭐','🪙'];
+  for(let i=0;i<12;i++){
+    const el = document.createElement('div');
+    el.style.position='absolute';
+    el.style.left=(50 + (Math.random()*180-90))+'%';
+    el.style.top=(28 + (Math.random()*40-20))+'%';
+    el.style.transform='translateX(-50%) rotate('+ (Math.random()*360)+'deg)';
+    el.style.fontSize=(12+Math.random()*22)+'px';
+    el.style.opacity=1;
+    el.innerText = emojis[Math.floor(Math.random()*emojis.length)];
+    wrap.appendChild(el);
+  }
+  root.appendChild(wrap);
+  setTimeout(()=>wrap.remove(),1500);
+}
+function showLevelUp(lvl){
+  // simple floating badge
+  const badge = document.createElement('div');
+  badge.innerHTML = `<div style="background:linear-gradient(90deg,#00e2ff,#4bc8ff);color:#002;padding:14px 18px;border-radius:12px;font-weight:800;box-shadow:0 12px 30px rgba(10,170,255,0.14)">LEVEL UP<br><span style="font-size:18px">Level ${lvl}</span></div>`;
+  badge.style.position='fixed'; badge.style.left='50%'; badge.style.top='18%';
+  badge.style.transform='translateX(-50%)'; badge.style.zIndex=3000;
+  document.body.appendChild(badge);
+  setTimeout(()=>{ badge.style.transition='all .6s ease'; badge.style.transform='translateX(-50%) translateY(-60px)'; badge.style.opacity=0; },1200);
+  setTimeout(()=>badge.remove(),2200);
+}
+
+// ---------- RENDER / UI ----------
+function updateUI(){
+  // level & xp
+  document.getElementById('levelNum').innerText = state.level;
+  const need = xpToNext(state.level);
+  document.getElementById('xpText').innerText = `${state.xp}/${need}`;
+  const pct = Math.min(100, Math.floor((state.xp/need)*100));
+  document.getElementById('xpFill').style.width = pct + '%';
+  document.getElementById('coins').innerText = state.coins;
+
+  // quest list render
+  const grid = document.getElementById('questGrid'); grid.innerHTML = '';
+  state.quests.forEach(q=>{
+    const p = state.progress[q.id] || 0;
+    const percent = Math.min(100, Math.floor((p / q.goal) * 100));
+    const card = document.createElement('div'); card.className='quest-card';
+    // difficulty badge color
+    let bclass = 'badge-easy', difficulty = 'Normal';
+    if(q.type==='daily') { bclass='badge-daily'; difficulty='Daily'; }
+    if(q.type==='boss') { bclass='badge-boss'; difficulty='Boss'; }
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:12px;align-items:center;max-width:70%;">
+          <div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 6px 18px rgba(0,170,255,0.04)">${q.icon}</div>
+          <div style="min-width:0">
+            <div style="font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${q.name}</div>
+            <div class="meta" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${q.desc}</div>
+          </div>
+        </div>
+
+        <div style="text-align:right">
+          <div style="margin-bottom:6px"><span class="${bclass}" style="padding:6px 8px;border-radius:9px;font-weight:700;font-size:12px">${difficulty}</span></div>
+          <div class="meta" style="font-weight:800">${p} / ${q.goal}</div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px">
+        <div class="small-progress"><div class="fill" style="width:${percent}%"></div></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn-solo btn" data-action="view" data-id="${q.id}">View</button>
+          <button class="btn btn-ghost" data-action="+1" data-id="${q.id}">+1</button>
+          <button class="btn btn-ghost" data-action="+10" data-id="${q.id}">+10</button>
+          <button class="btn btn-ghost" data-action="reset" data-id="${q.id}">Reset</button>
+        </div>
+      </div>
+    `;
+    // attach events
+    card.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click',()=>handleCardAction(btn.dataset.action, btn.dataset.id));
+    });
+    grid.appendChild(card);
+  });
+}
+
+// card actions
+function handleCardAction(act,id){
+  if(act==='view'){ openModal(id); return; }
+  if(act==='+1'){ addProgress(id,1); return; }
+  if(act==='+10'){ addProgress(id,10); return; }
+  if(act==='reset'){ state.progress[id]=0; saveState(); updateUI(); return; }
+}
+
+// progress changes
+function addProgress(id,delta){
+  const q = state.quests.find(x=>x.id===id);
+  if(!q) return;
+  state.progress[id] = Math.min(q.goal, (state.progress[id]||0) + delta);
+  // small XP gain: grant xpPer * delta (not for boss who gives xp when completed)
+  if(q.type!=='boss') {
+    gainXP(Math.max(0, Math.floor(q.xpPer * delta)));
+  }
+  // if reaches goal => complete
+  if(state.progress[id] >= q.goal){
+    onQuestComplete(q);
+  }
+  updateUI(); saveState();
+  flashSaved();
+}
+function onQuestComplete(q){
+  // if already rewarded, do nothing; we'll allow multiple completes if quest repeated (for daily)
+  playSound('complete');
+  showConfetti();
+  gainXP(q.xpPer * (q.goal)); // reward xp for completion (bigger)
+  earnCoins(q.coinReward || 0);
+  // If quest is daily, increase streak & reset progress only if daily design wants auto reset; here we reset for daily
+  if(q.type==='daily'){
+    state.streak = (state.streak || 0) + 1;
+    // reset progress for daily next day; For demo we reset instantly to allow repetition
+    state.progress[q.id] = 0;
+  } else {
+    // Non-daily: keep as complete (cap at goal)
+    state.progress[q.id] = q.goal;
+  }
+  saveState();
+}
+function flashSaved(){
+  const el = document.getElementById('lastSaved');
+  el.innerText = 'Saved ' + new Date().toLocaleTimeString();
+  setTimeout(()=>el.innerText = 'Saved ' + (state.lastSaved ? state.lastSaved : ''),2000);
+}
+
+// ---------- MODAL INTERACTIONS ----------
+let currentModalId = null;
+function openModal(id){
+  const q = state.quests.find(x=>x.id===id); if(!q) return;
+  currentModalId = id;
+  document.getElementById('modalIcon').innerText = q.icon;
+  document.getElementById('modalTitle').innerText = q.name;
+  document.getElementById('modalType').innerText = q.type==='boss' ? 'Boss Quest' : (q.type==='daily' ? 'Daily Quest' : 'Quest');
+  document.getElementById('modalDesc').innerText = q.desc;
+  document.getElementById('modalReward').innerText = `+${(q.goal*q.xpPer)} XP • ${q.coinReward||0} coins`;
+  refreshModalProgress();
+  // attach modal buttons
+  document.getElementById('btnPlus10').onclick = ()=>{ addModalProgress(10); };
+  document.getElementById('btnPlus1').onclick = ()=>{ addModalProgress(1); };
+  document.getElementById('btnAddManual').onclick = ()=>{ 
+    const v = parseInt(document.getElementById('manualAdd').value||0);
+    if(isNaN(v) || v===0) return;
+    addModalProgress(v); document.getElementById('manualAdd').value='';
+  };
+  document.getElementById('btnResetProgress').onclick = ()=>{ state.progress[id]=0; saveState(); refreshModalProgress(); updateUI(); };
+  document.getElementById('btnMarkComplete').onclick = ()=>{ state.progress[id] = state.quests.find(x=>x.id===id).goal; onQuestComplete(state.quests.find(x=>x.id===id)); refreshModalProgress(); updateUI(); };
+  // show modal
+  new bootstrap.Modal(document.getElementById('questModal')).show();
+}
+function addModalProgress(n){
+  if(!currentModalId) return; addProgress(currentModalId,n); refreshModalProgress();
+}
+function refreshModalProgress(){
+  if(!currentModalId) return;
+  const q = state.quests.find(x=>x.id===currentModalId); const p = state.progress[currentModalId] || 0;
+  const pct = Math.min(100, Math.floor((p/q.goal)*100));
+  document.getElementById('modalProgressText').innerText = `${p} / ${q.goal}`;
+  document.getElementById('modalSmallFill').style.width = pct + '%';
+}
+
+// ---------- BOOT / INTERACTIONS ----------
+document.getElementById('addDemoQuest').addEventListener('click', ()=>{
+  // create a simple incremental id
+  const nid = 'custom_' + Date.now();
+  const newQ = { id:nid, name:'Custom Quest', type:'quest', icon:'🛠️', desc:'User created quest', goal:20, xpPer:3, coinReward:6, difficulty:'easy' };
+  state.quests.push(newQ); state.progress[nid]=0; saveState(); updateUI();
+});
+document.getElementById('resetAll').addEventListener('click', ()=>{
+  if(!confirm('Reset everything? This clears saved progress.')) return;
+  localStorage.removeItem(KEY); location.reload();
+});
+
+// init
+function init(){
+  loadState();
+  // ensure progress keys exist
+  state.quests.forEach(q=> { if(state.progress[q.id]===undefined) state.progress[q.id]=0; });
+  updateUI();
+  // hide splash
+  setTimeout(()=>{ document.getElementById('splash').classList.add('hidden'); document.getElementById('app').style.opacity=1; }, 800);
+}
+
+// small feature: auto-save every 8s (and update lastSaved)
+setInterval(()=>{ saveState(); }, 8000);
+
+// Kick off
+init();
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
