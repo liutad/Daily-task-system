@@ -167,283 +167,109 @@ html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg1),var(
   <div class="quest-grid" id="questGrid" style="margin-top:14px"></div>
 </div>
 
+<!-- Quest Modal -->
+<div class="modal fade" id="questModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-3">
+      <div class="quest-modal-header">
+        <div class="quest-icon" id="modalIcon">💪</div>
+        <div style="flex:1">
+          <div id="modalTitle" style="font-size:20px;font-weight:800"></div>
+          <div class="meta" id="modalType">Quest</div>
+          <div class="meta" id="modalDesc" style="margin-top:8px"></div>
+        </div>
+        <div style="width:80px;text-align:right">
+          <div class="meta">Reward</div>
+          <div id="modalReward" style="font-weight:800;font-size:18px">+0 XP</div>
+        </div>
+      </div>
+
+      <hr style="border-top:1px solid rgba(255,255,255,0.03)">
+
+      <div>
+        <div class="row-between">
+          <div class="meta">Progress</div>
+          <div class="meta"><span id="modalProgressText">0/100</span></div>
+        </div>
+        <div class="small-progress"><div class="fill" id="modalSmallFill"></div></div>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn-solo btn w-100" id="btnPlus10">+10</button>
+          <button class="btn-solo btn w-100" id="btnPlus1">+1</button>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+          <input type="number" id="manualAdd" placeholder="+X" class="form-control" style="max-width:120px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);color:#eaf6ff" />
+          <button class="btn btn-ghost" id="btnAddManual">Add</button>
+          <div style="flex:1"></div>
+          <button class="btn btn-danger" id="btnResetProgress">Reset</button>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn btn-solo w-100" id="btnMarkComplete">Mark Complete</button>
+          <button class="btn btn-ghost w-100" id="btnCloseModal" data-bs-dismiss="modal">Close</button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Confetti container -->
+<div id="confettiRoot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-// ---------- DATA & STATE ----------
+// ---------------- JS from original version ----------------
 let defaultQuests = [
   { id:'saitama', name:'Saitama Training', type:'daily', icon:'💪', desc:'100 Pushups / 100 Situps / 100 Squats / 10km Run', goal:100, xpPer:1, coinReward:25, difficulty:'hard' },
   { id:'push-boost', name:'Pushup Set', type:'quest', icon:'🟦', desc:'Do 50 pushups in sets.', goal:50, xpPer:2, coinReward:12, difficulty:'easy' },
   { id:'boss-goblin', name:'Goblin Slayer (Boss)', type:'boss', icon:'👹', desc:'Defeat the Goblin Boss: 1 epic battle', goal:1, xpPer:300, coinReward:200, difficulty:'boss' }
 ];
+let state = { quests:[], progress:{}, level:1, xp:0, coins:0, lastSaved:null, streak:0 };
+const KEY='arise_quest_v1';
 
-let state = {
-  quests: [],         // quests array
-  progress: {},       // id -> progress number
-  level: 1,
-  xp: 0,
-  coins: 0,
-  lastSaved: null,
-  streak: 0,          // daily streak for daily quests
-};
+function saveState(){ localStorage.setItem(KEY, JSON.stringify(state)); state.lastSaved = new Date().toLocaleString(); document.getElementById('lastSaved').innerText = 'Saved ' + state.lastSaved; }
+function loadState(){ let raw=localStorage.getItem(KEY); if(raw){ try{ Object.assign(state, JSON.parse(raw)); }catch(e){} } else { state.quests=defaultQuests.slice(); defaultQuests.forEach(q=> state.progress[q.id]=0);} }
+function xpToNext(level){ return Math.floor(100 * Math.pow(1.25, level-1)); }
+const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+function playTone(freq,type='sine',dur=0.12,gain=0.12){try{let o=audioCtx.createOscillator();let g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.value=gain;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);}catch(e){}}
+function playSound(name){ if(!audioCtx) return; if(name==='xp'){ playTone(880,'sine',0.08,0.06); playTone(1320,'sine',0.06,0.04); } if(name==='level'){ playTone(540,'sawtooth',0.18,0.14); playTone(720,'sine',0.18,0.12);} if(name==='complete'){playTone(1200,'triangle',0.12,0.12);playTone(1600,'sine',0.08,0.06);} if(name==='coin'){playTone(880,'square',0.06,0.06); playTone(1100,'sine',0.06,0.05);}}
 
-// localStorage keys
-const KEY = 'arise_quest_v1';
+function gainXP(amount){ playSound('xp'); state.xp+=amount; while(state.xp>=xpToNext(state.level)){ state.xp-=xpToNext(state.level); state.level+=1; playSound('level'); showLevelUp(state.level);} updateUI(); saveState();}
+function earnCoins(n){ state.coins+=n; updateUI(); playSound('coin'); saveState();}
 
-// ---------- UTILS ----------
-function saveState(){
-  localStorage.setItem(KEY, JSON.stringify(state));
-  state.lastSaved = new Date().toLocaleString();
-  document.getElementById('lastSaved').innerText = 'Saved ' + state.lastSaved;
-}
-function loadState(){
-  let raw = localStorage.getItem(KEY);
-  if(raw){
-    try{ Object.assign(state, JSON.parse(raw)); }catch(e){}
-  } else {
-    // initial seeding
-    state.quests = defaultQuests.slice();
-    defaultQuests.forEach(q=> state.progress[q.id] = 0);
-  }
-}
-function xpToNext(level){
-  // simple formula: base 100 * (1.25 ^ (level-1))
-  return Math.floor(100 * Math.pow(1.25, level-1));
-}
-function gainXP(amount){
-  // sound & visual
-  playSound('xp');
-  state.xp += amount;
-  // level up loop
-  while(state.xp >= xpToNext(state.level)){
-    state.xp -= xpToNext(state.level);
-    state.level += 1;
-    playSound('level');
-    showLevelUp(state.level);
-  }
-  updateUI();
-  saveState();
-}
-function earnCoins(n){ state.coins += n; updateUI(); playSound('coin'); saveState(); }
+function showConfetti(){ const root=document.getElementById('confettiRoot'); const wrap=document.createElement('div'); wrap.className='complete-burst'; const emojis=['🎉','✨','🔥','💥','⭐','🪙']; for(let i=0;i<12;i++){ const el=document.createElement('div'); el.style.position='absolute'; el.style.left=(50+(Math.random()*180-90))+'%'; el.style.top=(28+(Math.random()*40-20))+'%'; el.style.transform='translateX(-50%) rotate('+(Math.random()*360)+'deg)'; el.style.fontSize=(12+Math.random()*22)+'px'; el.style.opacity=1; el.innerText=emojis[Math.floor(Math.random()*emojis.length)]; wrap.appendChild(el);} root.appendChild(wrap); setTimeout(()=>wrap.remove(),1500);}
+function showLevelUp(lvl){ const badge=document.createElement('div'); badge.innerHTML=`<div style="background:linear-gradient(90deg,#00e2ff,#4bc8ff);color:#002;padding:14px 18px;border-radius:12px;font-weight:800;box-shadow:0 12px 30px rgba(10,170,255,0.14)">LEVEL UP<br><span style="font-size:18px">Level ${lvl}</span></div>`; badge.style.position='fixed'; badge.style.left='50%'; badge.style.top='18%'; badge.style.transform='translateX(-50%)'; badge.style.zIndex=3000; badge.style.opacity=0; badge.style.transition='opacity 0.2s ease, transform 0.3s ease'; document.body.appendChild(badge); setTimeout(()=>{ badge.style.opacity=1; badge.style.transform='translateX(-50%) translateY(-12px)'; },20); setTimeout(()=>{ badge.style.opacity=0; badge.style.transform='translateX(-50%) translateY(-28px)'; setTimeout(()=>badge.remove(),400); },1200);}
 
-// ---------- SOUNDS (WebAudio simple) ----------
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playTone(freq, type='sine', dur=0.12, gain=0.12){
-  try{
-    let o = audioCtx.createOscillator();
-    let g = audioCtx.createGain();
-    o.type = type; o.frequency.value = freq;
-    g.gain.value = gain;
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start();
-    o.stop(audioCtx.currentTime + dur);
-  } catch(e){}
-}
-function playSound(name){
-  // small mapping
-  if(!audioCtx) return;
-  if(name==='xp'){ playTone(880,'sine',0.08,0.06); playTone(1320,'sine',0.06,0.04); }
-  if(name==='level'){ playTone(540,'sawtooth',0.18,0.14); playTone(720,'sine',0.18,0.12); }
-  if(name==='complete'){ playTone(1200,'triangle',0.12,0.12); playTone(1600,'sine',0.08,0.06); }
-  if(name==='coin'){ playTone(880,'square',0.06,0.06); playTone(1100,'sine',0.06,0.05); }
-}
+function updateUI(){ document.getElementById('levelNum').innerText=state.level; document.getElementById('xpText').innerText=state.xp+'/'+xpToNext(state.level); document.getElementById('xpFill').style.width=Math.min(100,state.xp/xpToNext(state.level)*100)+'%'; document.getElementById('coins').innerText=state.coins; renderQuests(); }
 
-// ---------- VISUAL EFFECTS ----------
-function showConfetti(){
-  // small confetti burst using emoji nodes
-  const root = document.getElementById('confettiRoot');
-  const wrap = document.createElement('div'); wrap.className='complete-burst';
-  const emojis = ['🎉','✨','🔥','💥','⭐','🪙'];
-  for(let i=0;i<12;i++){
-    const el = document.createElement('div');
-    el.style.position='absolute';
-    el.style.left=(50 + (Math.random()*180-90))+'%';
-    el.style.top=(28 + (Math.random()*40-20))+'%';
-    el.style.transform='translateX(-50%) rotate('+ (Math.random()*360)+'deg)';
-    el.style.fontSize=(12+Math.random()*22)+'px';
-    el.style.opacity=1;
-    el.innerText = emojis[Math.floor(Math.random()*emojis.length)];
-    wrap.appendChild(el);
-  }
-  root.appendChild(wrap);
-  setTimeout(()=>wrap.remove(),1500);
-}
-function showLevelUp(lvl){
-  // simple floating badge
-  const badge = document.createElement('div');
-  badge.innerHTML = `<div style="background:linear-gradient(90deg,#00e2ff,#4bc8ff);color:#002;padding:14px 18px;border-radius:12px;font-weight:800;box-shadow:0 12px 30px rgba(10,170,255,0.14)">LEVEL UP<br><span style="font-size:18px">Level ${lvl}</span></div>`;
-  badge.style.position='fixed'; badge.style.left='50%'; badge.style.top='18%';
-  badge.style.transform='translateX(-50%)'; badge.style.zIndex=3000;
-  document.body.appendChild(badge);
-  setTimeout(()=>{ badge.style.transition='all .6s ease'; badge.style.transform='translateX(-50%) translateY(-60px)'; badge.style.opacity=0; },1200);
-  setTimeout(()=>badge.remove(),2200);
-}
+function renderQuests(){ const grid=document.getElementById('questGrid'); grid.innerHTML=''; state.quests.forEach(q=>{ const p=state.progress[q.id]||0; const card=document.createElement('div'); card.className='quest-card'; card.innerHTML=`<div style="font-size:24px">${q.icon} ${q.name}</div><div class="meta">${q.desc}</div><div class="small-progress"><div class="fill" style="width:${Math.min(100,p/q.goal*100)}%"></div></div>`; card.onclick=()=>openQuestModal(q.id); grid.appendChild(card); }); }
 
-// ---------- RENDER / UI ----------
-function updateUI(){
-  // level & xp
-  document.getElementById('levelNum').innerText = state.level;
-  const need = xpToNext(state.level);
-  document.getElementById('xpText').innerText = `${state.xp}/${need}`;
-  const pct = Math.min(100, Math.floor((state.xp/need)*100));
-  document.getElementById('xpFill').style.width = pct + '%';
-  document.getElementById('coins').innerText = state.coins;
+function openQuestModal(id){ const quest=state.quests.find(q=>q.id===id); if(!quest) return; const modal=new bootstrap.Modal(document.getElementById('questModal')); document.getElementById('modalTitle').innerText=quest.name; document.getElementById('modalType').innerText=quest.type; document.getElementById('modalDesc').innerText=quest.desc; document.getElementById('modalReward').innerText=`+${quest.xpPer} XP / ${quest.coinReward} Coins`; document.getElementById('modalProgressText').innerText=`${state.progress[id]||0}/${quest.goal}`; document.getElementById('modalSmallFill').style.width=`${Math.min(100,(state.progress[id]||0)/quest.goal*100)}%`; currentModalQuest=id; modal.show(); }
 
-  // quest list render
-  const grid = document.getElementById('questGrid'); grid.innerHTML = '';
-  state.quests.forEach(q=>{
-    const p = state.progress[q.id] || 0;
-    const percent = Math.min(100, Math.floor((p / q.goal) * 100));
-    const card = document.createElement('div'); card.className='quest-card';
-    // difficulty badge color
-    let bclass = 'badge-easy', difficulty = 'Normal';
-    if(q.type==='daily') { bclass='badge-daily'; difficulty='Daily'; }
-    if(q.type==='boss') { bclass='badge-boss'; difficulty='Boss'; }
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;gap:12px;align-items:center;max-width:70%;">
-          <div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 6px 18px rgba(0,170,255,0.04)">${q.icon}</div>
-          <div style="min-width:0">
-            <div style="font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${q.name}</div>
-            <div class="meta" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${q.desc}</div>
-          </div>
-        </div>
+let currentModalQuest=null;
+document.getElementById('btnPlus1').onclick=()=>{ addProgress(1); };
+document.getElementById('btnPlus10').onclick=()=>{ addProgress(10); };
+document.getElementById('btnAddManual').onclick=()=>{ const n=parseInt(document.getElementById('manualAdd').value); if(!isNaN(n)) addProgress(n); };
+document.getElementById('btnResetProgress').onclick=()=>{ if(!currentModalQuest) return; state.progress[currentModalQuest]=0; updateModal(); saveState(); };
+document.getElementById('btnMarkComplete').onclick=()=>{ if(!currentModalQuest) return; const q=state.quests.find(q=>q.id===currentModalQuest); state.progress[currentModalQuest]=q.goal; gainXP(q.xpPer*q.goal); earnCoins(q.coinReward); showConfetti(); updateModal(); saveState(); };
+document.getElementById('btnCloseModal').onclick=()=>{ currentModalQuest=null; };
 
-        <div style="text-align:right">
-          <div style="margin-bottom:6px"><span class="${bclass}" style="padding:6px 8px;border-radius:9px;font-weight:700;font-size:12px">${difficulty}</span></div>
-          <div class="meta" style="font-weight:800">${p} / ${q.goal}</div>
-        </div>
-      </div>
+function addProgress(n){ if(!currentModalQuest) return; const q=state.quests.find(q=>q.id===currentModalQuest); state.progress[currentModalQuest]=(state.progress[currentModalQuest]||0)+n; if(state.progress[currentModalQuest]>q.goal) state.progress[currentModalQuest]=q.goal; gainXP(q.xpPer*n); updateModal(); saveState(); }
 
-      <div style="margin-top:10px">
-        <div class="small-progress"><div class="fill" style="width:${percent}%"></div></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn-solo btn" data-action="view" data-id="${q.id}">View</button>
-          <button class="btn btn-ghost" data-action="+1" data-id="${q.id}">+1</button>
-          <button class="btn btn-ghost" data-action="+10" data-id="${q.id}">+10</button>
-          <button class="btn btn-ghost" data-action="reset" data-id="${q.id}">Reset</button>
-        </div>
-      </div>
-    `;
-    // attach events
-    card.querySelectorAll('button').forEach(btn=>{
-      btn.addEventListener('click',()=>handleCardAction(btn.dataset.action, btn.dataset.id));
-    });
-    grid.appendChild(card);
-  });
-}
+function updateModal(){ if(!currentModalQuest) return; const q=state.quests.find(q=>q.id===currentModalQuest); document.getElementById('modalProgressText').innerText=`${state.progress[currentModalQuest]||0}/${q.goal}`; document.getElementById('modalSmallFill').style.width=`${Math.min(100,(state.progress[currentModalQuest]||0)/q.goal*100)}%`; }
 
-// card actions
-function handleCardAction(act,id){
-  if(act==='view'){ openModal(id); return; }
-  if(act==='+1'){ addProgress(id,1); return; }
-  if(act==='+10'){ addProgress(id,10); return; }
-  if(act==='reset'){ state.progress[id]=0; saveState(); updateUI(); return; }
-}
+document.getElementById('addDemoQuest').onclick=()=>{ defaultQuests.forEach(q=>{ if(!state.quests.find(x=>x.id===q.id)) { state.quests.push(q); state.progress[q.id]=0; } }); updateUI(); saveState(); };
+document.getElementById('resetAll').onclick=()=>{ state.quests=[]; state.progress={}; state.level=1; state.xp=0; state.coins=0; updateUI(); saveState(); };
 
-// progress changes
-function addProgress(id,delta){
-  const q = state.quests.find(x=>x.id===id);
-  if(!q) return;
-  state.progress[id] = Math.min(q.goal, (state.progress[id]||0) + delta);
-  // small XP gain: grant xpPer * delta (not for boss who gives xp when completed)
-  if(q.type!=='boss') {
-    gainXP(Math.max(0, Math.floor(q.xpPer * delta)));
-  }
-  // if reaches goal => complete
-  if(state.progress[id] >= q.goal){
-    onQuestComplete(q);
-  }
-  updateUI(); saveState();
-  flashSaved();
-}
-function onQuestComplete(q){
-  // if already rewarded, do nothing; we'll allow multiple completes if quest repeated (for daily)
-  playSound('complete');
-  showConfetti();
-  gainXP(q.xpPer * (q.goal)); // reward xp for completion (bigger)
-  earnCoins(q.coinReward || 0);
-  // If quest is daily, increase streak & reset progress only if daily design wants auto reset; here we reset for daily
-  if(q.type==='daily'){
-    state.streak = (state.streak || 0) + 1;
-    // reset progress for daily next day; For demo we reset instantly to allow repetition
-    state.progress[q.id] = 0;
-  } else {
-    // Non-daily: keep as complete (cap at goal)
-    state.progress[q.id] = q.goal;
-  }
-  saveState();
-}
-function flashSaved(){
-  const el = document.getElementById('lastSaved');
-  el.innerText = 'Saved ' + new Date().toLocaleTimeString();
-  setTimeout(()=>el.innerText = 'Saved ' + (state.lastSaved ? state.lastSaved : ''),2000);
-}
-
-// ---------- MODAL INTERACTIONS ----------
-let currentModalId = null;
-function openModal(id){
-  const q = state.quests.find(x=>x.id===id); if(!q) return;
-  currentModalId = id;
-  document.getElementById('modalIcon').innerText = q.icon;
-  document.getElementById('modalTitle').innerText = q.name;
-  document.getElementById('modalType').innerText = q.type==='boss' ? 'Boss Quest' : (q.type==='daily' ? 'Daily Quest' : 'Quest');
-  document.getElementById('modalDesc').innerText = q.desc;
-  document.getElementById('modalReward').innerText = `+${(q.goal*q.xpPer)} XP • ${q.coinReward||0} coins`;
-  refreshModalProgress();
-  // attach modal buttons
-  document.getElementById('btnPlus10').onclick = ()=>{ addModalProgress(10); };
-  document.getElementById('btnPlus1').onclick = ()=>{ addModalProgress(1); };
-  document.getElementById('btnAddManual').onclick = ()=>{ 
-    const v = parseInt(document.getElementById('manualAdd').value||0);
-    if(isNaN(v) || v===0) return;
-    addModalProgress(v); document.getElementById('manualAdd').value='';
-  };
-  document.getElementById('btnResetProgress').onclick = ()=>{ state.progress[id]=0; saveState(); refreshModalProgress(); updateUI(); };
-  document.getElementById('btnMarkComplete').onclick = ()=>{ state.progress[id] = state.quests.find(x=>x.id===id).goal; onQuestComplete(state.quests.find(x=>x.id===id)); refreshModalProgress(); updateUI(); };
-  // show modal
-  new bootstrap.Modal(document.getElementById('questModal')).show();
-}
-function addModalProgress(n){
-  if(!currentModalId) return; addProgress(currentModalId,n); refreshModalProgress();
-}
-function refreshModalProgress(){
-  if(!currentModalId) return;
-  const q = state.quests.find(x=>x.id===currentModalId); const p = state.progress[currentModalId] || 0;
-  const pct = Math.min(100, Math.floor((p/q.goal)*100));
-  document.getElementById('modalProgressText').innerText = `${p} / ${q.goal}`;
-  document.getElementById('modalSmallFill').style.width = pct + '%';
-}
-
-// ---------- BOOT / INTERACTIONS ----------
-document.getElementById('addDemoQuest').addEventListener('click', ()=>{
-  // create a simple incremental id
-  const nid = 'custom_' + Date.now();
-  const newQ = { id:nid, name:'Custom Quest', type:'quest', icon:'🛠️', desc:'User created quest', goal:20, xpPer:3, coinReward:6, difficulty:'easy' };
-  state.quests.push(newQ); state.progress[nid]=0; saveState(); updateUI();
-});
-document.getElementById('resetAll').addEventListener('click', ()=>{
-  if(!confirm('Reset everything? This clears saved progress.')) return;
-  localStorage.removeItem(KEY); location.reload();
-});
-
-// init
-function init(){
-  loadState();
-  // ensure progress keys exist
-  state.quests.forEach(q=> { if(state.progress[q.id]===undefined) state.progress[q.id]=0; });
-  updateUI();
-  // hide splash
-  setTimeout(()=>{ document.getElementById('splash').classList.add('hidden'); document.getElementById('app').style.opacity=1; }, 800);
-}
-
-// small feature: auto-save every 8s (and update lastSaved)
-setInterval(()=>{ saveState(); }, 8000);
-
-// Kick off
-init();
-
+// INIT
+loadState();
+updateUI();
+setTimeout(()=>{ document.getElementById('splash').classList.add('hidden'); document.getElementById('app').style.opacity=1; },900);
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
