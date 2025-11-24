@@ -207,11 +207,13 @@ body {
 
         <div class="top-panel">
             <div class="char-info">
-                <h2>???</h2>
-                <div>Age: ???</div>
-                <div>Height: ???cm</div>
-                <div>Weight: ???kg</div>
-            </div>
+                <div class="char-info">
+                    <h2 id="p_name">???</h2>
+                    <div>Age: <span id="p_age">???</span></div>
+                    <div>Height: <span id="p_height">???</span>cm</div>
+                    <div>Weight: <span id="p_weight">???</span>kg</div>
+                </div>
+
             <div class="radar-container">
                 <canvas id="potentialChart" height="160"></canvas>
             </div>
@@ -316,7 +318,20 @@ setInterval(()=>{
 
 },5000);
 
+    const profile = JSON.parse(localStorage.getItem("profile"));
+
+  if (!profile) {
+    alert("No profile found. Please login first.");
+    window.location.href = "login.html"; 
+  } else {
+    document.getElementById("p_name").textContent = profile.name;
+    document.getElementById("p_age").textContent = profile.age;
+    document.getElementById("p_height").textContent = profile.height;
+    document.getElementById("p_weight").textContent = profile.weight;
+  }
+
 </script>
 
 </body>
 </html>
+
