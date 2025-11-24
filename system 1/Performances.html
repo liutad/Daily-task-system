@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Daily-tasks-system</title>
+<title>Status Window</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -15,73 +15,63 @@ body {
     color: #fff;
     font-family: 'Segoe UI', sans-serif;
     overflow-x: hidden;
+    margin: 0;
+    padding: 0;
 }
 .container-mobile {
     max-width: 480px;
     margin: auto;
-    padding: 20px;
+    padding: 15px;
 }
 
 /* PAGE TITLE */
 .page-title {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 .page-title h1 {
-    font-size: 1.8rem;
+    font-size: 6vw;
     font-weight: 700;
     letter-spacing: 1px;
     color: #00ffff;
     text-shadow: 0 0 8px #00ffff;
 }
 
-/* HUD PANEL */
+/* STATUS CARD */
 .status-card {
     background: rgba(20,20,20,0.6);
     backdrop-filter: blur(6px);
     border: 1px solid rgba(0,255,255,0.25);
     border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 0 30px rgba(0,255,255,0.3);
+    padding: 15px;
     position: relative;
     overflow: hidden;
+    min-height: 350px;
+    box-shadow: 0 0 30px rgba(0,255,255,0.3);
     animation: float 4s ease-in-out infinite;
 }
-
-/* FLOATING PANEL */
 @keyframes float {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-5px); }
     100% { transform: translateY(0px); }
 }
 
-/* SCAN-LINE */
+/* SCANLINE */
 .status-card::before {
-    content: "";
-    position: absolute;
-    top:0; left:0; right:0; bottom:0;
-    background: repeating-linear-gradient(
-        to bottom,
-        rgba(255,255,255,0.02),
-        rgba(255,255,255,0.02) 1px,
-        transparent 1px,
-        transparent 4px
-    );
-    pointer-events: none;
+    content:"";
+    position:absolute; top:0; left:0; right:0; bottom:0;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(255,255,255,0.02) 1px, transparent 1px, transparent 4px);
+    pointer-events:none;
     animation: scan 2s linear infinite;
 }
-@keyframes scan {
-    0% { background-position-y: 0; }
-    100% { background-position-y: 5px; }
-}
+@keyframes scan { 0% { background-position-y:0;} 100% { background-position-y:5px; } }
 
-/* PANEL FLICKER */
+/* FLICKER */
 .status-card::after {
-    content: "";
-    position: absolute;
-    top:0; left:0; right:0; bottom:0;
+    content:"";
+    position:absolute; top:0; left:0; right:0; bottom:0;
     background: rgba(255,255,255,0.03);
-    pointer-events: none;
+    pointer-events:none;
     animation: flicker 1.5s infinite;
 }
 @keyframes flicker {
@@ -91,105 +81,56 @@ body {
 
 /* PARTICLES */
 .particles, .level-up-particles {
-    position: absolute;
-    top:0; left:0; right:0; bottom:0;
-    pointer-events: none;
-    overflow: visible;
-    z-index:0;
+    position: absolute; top:0; left:0; right:0; bottom:0;
+    pointer-events: none; overflow: visible; z-index:0;
 }
 .particles div, .level-up-particles div {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: #00ffff;
-    border-radius: 50%;
+    position: absolute; width: 4px; height: 4px; background: #00ffff; border-radius: 50%;
 }
-.particles div {
-    opacity: 0.8;
-    animation: particleFloat 3s linear infinite;
-}
-@keyframes particleFloat {
-    0% { transform: translateY(0px) translateX(0px); opacity: 0; }
-    10% { opacity: 0.8; }
-    50% { transform: translateY(-40px) translateX(10px); opacity: 0.4; }
-    100% { transform: translateY(-80px) translateX(20px); opacity: 0; }
-}
-.level-up-particles div {
-    opacity:0;
-    animation: burst 0.8s forwards;
-}
-@keyframes burst {
-    0% { transform: translate(0,0) scale(0.5); opacity:1; }
-    50% { opacity:1; }
-    100% { transform: translate(var(--x), var(--y)) scale(1); opacity:0; }
-}
+.particles div { opacity: 0.8; animation: particleFloat 3s linear infinite; }
+@keyframes particleFloat { 0% {transform:translateY(0) translateX(0);opacity:0;} 10% {opacity:0.8;} 50% {transform:translateY(-40px) translateX(10px);opacity:0.4;} 100% {transform:translateY(-80px) translateX(20px);opacity:0;} }
+.level-up-particles div { opacity:0; animation: burst 0.8s forwards; }
+@keyframes burst { 0% { transform:translate(0,0) scale(0.5); opacity:1;} 50% {opacity:1;} 100% { transform:translate(var(--x),var(--y)) scale(1); opacity:0;} }
 
 /* TOP PANEL */
 .top-panel {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
     position: relative;
     z-index:1;
 }
-.char-info h2 {
-    margin:0; font-size:1.4rem; color:#00ffff; text-shadow:0 0 6px #00ffff;
-}
-.char-info small { color:#0ff; }
-.char-info div { margin-top:4px; font-size:0.95rem; }
+.char-info { text-align:left; }
+.char-info h2 { margin:0; font-size:1.2rem; color:#00ffff; text-shadow:0 0 6px #00ffff; }
+.char-info div { margin-top:4px; font-size:0.9rem; color:#0ff; }
 
 /* RADAR CHART */
-.radar-container {
-    width:48%;
-}
-.radar-container canvas {
-    border:1px solid rgba(0,255,255,0.3);
-    box-shadow:0 0 20px #00ffff;
-    animation: radarShimmer 2s infinite linear alternate;
-}
-@keyframes radarShimmer {
-    0% { box-shadow:0 0 10px #00ffff; }
-    50% { box-shadow:0 0 22px #00ffff; }
-    100% { box-shadow:0 0 10px #00ffff; }
-}
+.radar-container { width:48%; min-width:150px; }
+.radar-container canvas { width:100% !important; height:auto !important; border:1px solid rgba(0,255,255,0.3); box-shadow:0 0 20px #00ffff; animation: radarShimmer 2s infinite linear alternate; }
+@keyframes radarShimmer { 0% { box-shadow:0 0 10px #00ffff;} 50% {box-shadow:0 0 22px #00ffff;} 100% {box-shadow:0 0 10px #00ffff;} }
 
-/* STATS BARS */
-.stat-bar { margin-bottom:12px; position:relative; }
-.stat-bar .progress {
-    height:12px; background:#111; border-radius:10px; overflow:hidden; border:1px solid rgba(255,255,255,0.1);
-}
-.progress-bar {
-    height:100%; width:0%; border-radius:10px;
-    transition: width 0.3s ease-out; /* FAST FILL */
-}
-
-/* Neon colors per stat */
+/* STAT BARS */
+.stat-bar { margin-bottom:10px; position:relative; }
+.stat-bar .progress { height:12px; background:#111; border-radius:10px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); }
+.progress-bar { height:100%; width:0%; border-radius:10px; transition: width 0.3s ease-out; }
 #strengthBar { background: linear-gradient(90deg,#00eaff,#0077ff); box-shadow:0 0 12px #00eaff; }
 #staminaBar { background: linear-gradient(90deg,#00ffaa,#00ff77); box-shadow:0 0 12px #00ff77; }
 #agilityBar { background: linear-gradient(90deg,#ff77ff,#ff00ff); box-shadow:0 0 12px #ff00ff; }
 #fatigueBar { background: linear-gradient(90deg,#ff0033,#ff7700); box-shadow:0 0 14px #ff0033; }
-
 .progress-bar.animate { animation: barGlow 0.5s ease forwards; }
-@keyframes barGlow {
-    0% { box-shadow:0 0 4px #00ffff; }
-    50% { box-shadow:0 0 14px #00ffff; }
-    100% { box-shadow:0 0 8px #00ffff; }
-}
+@keyframes barGlow {0% {box-shadow:0 0 4px #00ffff;}50% {box-shadow:0 0 14px #00ffff;}100% {box-shadow:0 0 8px #00ffff;}}
 
 /* LEVEL BAR */
-.level-bar-container {
-    margin-top:15px; background:#111; border-radius:12px; height:16px; overflow:hidden; border:1px solid rgba(0,255,255,0.3);
-}
-.level-bar {
-    height:100%; width:0%; background:linear-gradient(90deg,#00ffff,#0077ff); box-shadow:0 0 14px #00ffff; transition: width 0.3s ease-out; border-radius:12px;
-}
+.level-bar-container { margin-top:10px; background:#111; border-radius:12px; height:14px; overflow:hidden; border:1px solid rgba(0,255,255,0.3);}
+.level-bar { height:100%; width:0%; background:linear-gradient(90deg,#00ffff,#0077ff); box-shadow:0 0 14px #00ffff; transition: width 0.3s ease-out; border-radius:12px; }
 
 /* MOBILE RESPONSIVE */
 @media(max-width:480px){
-    .top-panel { flex-direction:column; align-items:center; }
-    .radar-container { width:80%; margin-top:15px; }
-    .char-info { text-align:center; }
+    .top-panel { flex-direction: column; align-items: center; }
+    .radar-container { width:90%; margin-top:15px; }
+    .char-info { text-align:center; margin-bottom:10px; }
 }
 </style>
 </head>
@@ -207,15 +148,13 @@ body {
 
         <div class="top-panel">
             <div class="char-info">
-                <div class="char-info">
-                    <h2 id="p_name">???</h2>
-                    <div>Age: <span id="p_age">???</span></div>
-                    <div>Height: <span id="p_height">???</span>cm</div>
-                    <div>Weight: <span id="p_weight">???</span>kg</div>
-                </div>
-
+                <h2 id="p_name">???</h2>
+                <div>Age: <span id="p_age">???</span></div>
+                <div>Height: <span id="p_height">???</span>cm</div>
+                <div>Weight: <span id="p_weight">???</span>kg</div>
+            </div>
             <div class="radar-container">
-                <canvas id="potentialChart" height="160"></canvas>
+                <canvas id="potentialChart"></canvas>
             </div>
         </div>
 
@@ -265,23 +204,20 @@ const potentialChart = new Chart(radarCanvas, {
             {label:"Potential", data:[potential.strength,potential.stamina,potential.agility,potential.speed,potential.hp], borderColor:"#00bcd4", backgroundColor:"rgba(0,188,212,0.18)", borderWidth:2, pointRadius:3}
         ]
     },
-    options:{scales:{r:{beginAtZero:true,max:100,grid:{color:"#333"},pointLabels:{color:"white"},angleLines:{color:"#444"}}}, plugins:{legend:{labels:{color:"white"}}}}
+    options:{responsive:true, maintainAspectRatio:true, scales:{r:{beginAtZero:true,max:100,grid:{color:"#333"},pointLabels:{color:"white"},angleLines:{color:"#444"}}}, plugins:{legend:{labels:{color:"white"}}}}
 });
 
 // Floating particles
 const particleContainer = document.querySelector('.status-card .particles');
-function createParticles(count=20){
-    for(let i=0;i<count;i++){
-        const p = document.createElement('div');
-        p.style.left = Math.random()*100 + '%';
-        p.style.top = Math.random()*100 + '%';
-        p.style.animationDuration = (2+Math.random()*3) + 's';
-        p.style.width = (2+Math.random()*3)+'px';
-        p.style.height = p.style.width;
-        particleContainer.appendChild(p);
-    }
+for(let i=0;i<25;i++){
+    const p = document.createElement('div');
+    p.style.left = Math.random()*100 + '%';
+    p.style.top = Math.random()*100 + '%';
+    p.style.animationDuration = (2+Math.random()*3) + 's';
+    p.style.width = (2+Math.random()*3)+'px';
+    p.style.height = p.style.width;
+    particleContainer.appendChild(p);
 }
-createParticles(25);
 
 // Level-up particle burst
 const burstContainer = document.querySelector('.level-up-particles');
@@ -299,13 +235,12 @@ function levelUpBurst(count=15){
     }
 }
 
-// Demo: automatically level up every 5 seconds
+// Demo: level-up every 5 seconds
 setInterval(()=>{
     levelUpBurst();
     let levelPercent = Math.min(100, parseInt(levelBar.style.width||0) + 10);
     levelBar.style.width = levelPercent + "%";
 
-    // Update stat bars with glow
     [ ["strength", stats.strength], ["stamina", stats.stamina], ["agility", stats.agility], ["fatigue", stats.fatigue] ].forEach(([id,val])=>{
         const bar = document.getElementById(id+"Bar");
         bar.style.width = val+"%";
@@ -318,20 +253,18 @@ setInterval(()=>{
 
 },5000);
 
-    const profile = JSON.parse(localStorage.getItem("profile"));
-
-  if (!profile) {
+// Load profile
+const profile = JSON.parse(localStorage.getItem("profile"));
+if(!profile){
     alert("No profile found. Please login first.");
-    window.location.href = "login.html"; 
-  } else {
+    window.location.href="login.html";
+}else{
     document.getElementById("p_name").textContent = profile.name;
     document.getElementById("p_age").textContent = profile.age;
     document.getElementById("p_height").textContent = profile.height;
     document.getElementById("p_weight").textContent = profile.weight;
-  }
+}
 
 </script>
-
 </body>
 </html>
-
