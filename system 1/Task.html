@@ -62,7 +62,7 @@ h2{
   font-weight:800;
   margin-bottom:8px;
   letter-spacing:.6px;
-  color:white;
+  color: #ffffff;
   text-shadow:
     0 0 10px rgba(111,125,255,0.6),
     0 0 24px rgba(94,231,255,0.25);
@@ -110,7 +110,7 @@ h2{
 .task-text{
   flex:1;
   padding-right:8px;
-  color:#ffffff;
+  color: #ffffff;
   font-weight:600;
 }
 
@@ -189,7 +189,7 @@ h2{
 
   <!-- create card -->
   <div class="card pop mt-3">
-    <h5 style="margin:0 0 8px 0">Add New Task</h5>
+    <h5 style="margin:0 0 8px 0 ; color:white">Add New Task</h5>
     <input id="inputTask" class="form-control" placeholder="Write a task...">
     <div class="d-flex gap-2 mt-3">
       <button id="addTaskBtn" class="btn btn-success btn-round w-50">Add</button>
@@ -203,7 +203,7 @@ h2{
   <!-- tasks -->
   <div class="card pop mt-3">
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <h5 style="margin:0">Today's Tasks</h5>
+      <h5 style="margin:0 ; color:white">Today's Tasks</h5>
       <div>
         <button id="reuseAll" class="btn btn-warning btn-sm btn-round">Reuse All</button>
       </div>
@@ -213,7 +213,7 @@ h2{
 
   <!-- history -->
   <div class="card pop mt-3">
-    <h5 style="margin:0 0 8px 0">Tasks History</h5>
+    <h5 style="margin:0 0 8px 0 ; color:white">Tasks History</h5>
     <div id="historyList"></div>
     <div class="mt-3">
       <button id="clearHistory" class="btn btn-danger btn-round w-100">Clear History</button>
@@ -478,6 +478,7 @@ function updateXpBar(){ xpBar.style.width = xp + '%'; }
 </script>
 </body>
 </html>
+
 
 
 
