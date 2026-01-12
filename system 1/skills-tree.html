@@ -1,1 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Calisthenics Skill Tree</title>
 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#05060a;
+  --card:#0c0f18;
+  --text:#e8ecf6;
+  --muted:#8b93a7;
+  --accent:#4cc9f0;
+  --accent-2:#5f6cff;
+  --locked:#2a2e45;
+  --success:#2ecc71;
+  --warning:#e74c3c;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  background: radial-gradient(circle at top, #0c1024, #05060a);
+  min-height:100vh;
+  color:var(--text);
+  font-family: 'Segoe UI', system-ui;
+  overflow-x:hidden;
+}
+
+.header{
+  text-align:center;
+  padding:20px 15px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:15px;
+}
+
+.header h1{
+  font-weight:700;
+  letter-spacing:1px;
+  font-size:1.8rem;
+  margin:0;
+}
+
+.header p{
+  color:var(--muted);
+  max-width:100%;
+  margin:0;
+  font-size:0.95rem;
+}
+
+.nav-buttons{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+  width:100%;
+}
+
+.nav-buttons button{
+  background:var(--accent-2);
+  border:none;
+  color:white;
+  padding:8px 15px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+  transition:0.3s;
+  font-size:0.9rem;
+  flex:1;
+  min-width:100px;
+}
+
+.nav-buttons button:hover{
+  background:var(--accent);
+  transform:scale(1.05);
+}
+
+.nav-buttons button.active{
+  background:var(--success);
+}
+
+.nav-buttons button.reset-btn{
+  background:var(--warning);
+  padding:8px 12px;
+  font-size:0.85rem;
+  min-width:auto;
+}
+
+.nav-buttons button.reset-btn:hover{
+  background:#c0392b;
+  transform:scale(1.05);
+}
+
+/* Page Container */
+.page{
+  display:none;
+  animation:fadeIn 0.3s ease;
+}
+
+.page.active{
+  display:block;
+}
+
+@keyframes fadeIn{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+
+/* Skill Tree - Mobile */
+.tree-container{
+  display:flex;
+  justify-content:center;
+  padding:20px 10px;
+  width:100%;
+  overflow-x:auto;
+}
+
+svg{
+  width:100%;
+  height:auto;
+  min-width:320px;
+}
+
+/* Lines */
+.line{
+  stroke:#2f355f;
+  stroke-width:2;
+}
+
+/* Skill Nodes */
+.skill{
+  fill:var(--card);
+  stroke:var(--accent);
+  stroke-width:2;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.skill.locked{
+  stroke:var(--locked);
+  fill:#0a0c1a;
+  cursor:not-allowed;
+}
+
+.skill.completed{
+  fill:var(--success);
+  stroke:var(--success);
+  filter:drop-shadow(0 0 12px rgba(46,204,113,0.6));
+}
+
+.skill:not(.locked):hover{
+  fill:var(--accent);
+  stroke:white;
+  filter:drop-shadow(0 0 8px var(--accent));
+}
+
+.skill.locked:hover{
+  opacity:0.7;
+}
+
+/* Labels */
+.label{
+  fill:var(--text);
+  font-size:11px;
+  text-anchor:middle;
+  pointer-events:none;
+}
+
+@media (max-width: 768px) {
+  .label{
+    font-size:9px;
+  }
+}
+
+.category{
+  fill:var(--accent-2);
+  font-weight:600;
+  font-size:12px;
+}
+
+@media (max-width: 768px) {
+  .category{
+    font-size:10px;
+  }
+}
+
+/* Tooltip */
+.tooltip{
+  position:fixed;
+  background:rgba(12,15,24,0.98);
+  border:1px solid var(--accent);
+  padding:12px 16px;
+  border-radius:10px;
+  font-size:13px;
+  pointer-events:none;
+  opacity:0;
+  transition:0.2s;
+  box-shadow:0 0 20px rgba(76,201,240,0.2);
+  max-width:280px;
+  z-index:1000;
+  word-wrap:break-word;
+}
+
+@media (max-width: 768px) {
+  .tooltip{
+    font-size:12px;
+    padding:10px 12px;
+    max-width:200px;
+  }
+}
+
+/* Notification */
+.notification{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:var(--success);
+  color:white;
+  padding:12px 20px;
+  border-radius:8px;
+  font-weight:600;
+  animation:slideUp 0.5s ease;
+  z-index:1001;
+  font-size:0.9rem;
+}
+
+@media (max-width: 768px) {
+  .notification{
+    bottom:15px;
+    right:15px;
+    left:15px;
+    padding:10px 15px;
+    text-align:center;
+  }
+}
+
+@keyframes slideUp{
+  from{
+    transform:translateY(100px);
+    opacity:0;
+  }
+  to{
+    transform:translateY(0);
+    opacity:1;
+  }
+}
+
+/* Modal */
+.modal-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(0,0,0,0.8);
+  display:none;
+  justify-content:center;
+  align-items:flex-end;
+  z-index:2000;
+  padding:0;
+}
+
+.modal-overlay.active{
+  display:flex;
+}
+
+.modal-content{
+  background:var(--card);
+  border:1px solid var(--accent-2);
+  border-radius:20px 20px 0 0;
+  padding:25px 20px 30px;
+  max-width:100%;
+  max-height:90vh;
+  overflow-y:auto;
+  animation:slideUp 0.3s ease;
+  width:100%;
+}
+
+@media (min-width: 769px) {
+  .modal-overlay{
+    align-items:center;
+  }
+  
+  .modal-content{
+    border-radius:15px;
+    max-width:600px;
+    max-height:80vh;
+    padding:30px;
+  }
+}
+
+@keyframes slideDown{
+  from{
+    transform:translateY(-50px);
+    opacity:0;
+  }
+  to{
+    transform:translateY(0);
+    opacity:1;
+  }
+}
+
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+  border-bottom:1px solid var(--accent-2);
+  padding-bottom:15px;
+  gap:15px;
+}
+
+.modal-header h2{
+  font-size:1.5rem;
+  margin:0;
+  color:var(--accent);
+  flex:1;
+  word-break:break-word;
+}
+
+.close-btn{
+  background:none;
+  border:none;
+  color:var(--text);
+  font-size:1.5rem;
+  cursor:pointer;
+  transition:0.3s;
+  flex-shrink:0;
+}
+
+.close-btn:hover{
+  color:var(--accent);
+}
+
+.skill-description{
+  margin-bottom:20px;
+}
+
+.skill-description h3{
+  color:var(--accent-2);
+  margin-bottom:10px;
+  font-size:1.05rem;
+}
+
+.skill-description p{
+  color:var(--text);
+  line-height:1.6;
+  margin-bottom:10px;
+  font-size:0.95rem;
+}
+
+.skill-steps{
+  background:rgba(95,108,255,0.1);
+  border-left:3px solid var(--accent-2);
+  padding:15px;
+  border-radius:5px;
+  margin-bottom:20px;
+}
+
+.skill-steps strong{
+  color:var(--accent-2);
+  display:block;
+  margin-bottom:10px;
+}
+
+.skill-steps ol{
+  margin:0;
+  color:var(--text);
+  line-height:1.7;
+  padding-left:20px;
+  font-size:0.9rem;
+}
+
+.skill-steps li{
+  margin-bottom:8px;
+}
+
+.tips{
+  background:rgba(76,201,240,0.1);
+  border-left:3px solid var(--accent);
+  padding:15px;
+  border-radius:5px;
+  margin-bottom:20px;
+}
+
+.tips strong{
+  color:var(--accent);
+  display:block;
+  margin-bottom:10px;
+}
+
+.tips p{
+  color:var(--text);
+  margin:5px 0;
+  line-height:1.6;
+  font-size:0.9rem;
+}
+
+.master-btn{
+  background:var(--success);
+  border:none;
+  color:white;
+  padding:12px 30px;
+  border-radius:8px;
+  font-weight:600;
+  cursor:pointer;
+  width:100%;
+  margin-top:20px;
+  transition:0.3s;
+  font-size:1rem;
+}
+
+.master-btn:hover{
+  background:#27ae60;
+  transform:scale(1.02);
+}
+
+.master-btn:disabled{
+  background:var(--muted);
+  cursor:not-allowed;
+  transform:scale(1);
+}
+
+/* Mastered Skills Page */
+.mastered-container{
+  max-width:100%;
+  margin:0 auto;
+  padding:20px 15px 30px;
+}
+
+.mastered-header{
+  text-align:center;
+  margin-bottom:30px;
+}
+
+.mastered-header h2{
+  font-size:2rem;
+  font-weight:700;
+  color:var(--accent);
+  margin-bottom:10px;
+}
+
+@media (max-width: 768px) {
+  .mastered-header h2{
+    font-size:1.6rem;
+  }
+}
+
+.mastered-header p{
+  color:var(--muted);
+  font-size:1rem;
+}
+
+.skills-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+  gap:15px;
+  margin-bottom:30px;
+}
+
+@media (max-width: 480px) {
+  .skills-grid{
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px;
+  }
+}
+
+@media (min-width: 769px) {
+  .skills-grid{
+    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    gap:20px;
+  }
+}
+
+.skill-card{
+  background:linear-gradient(135deg, var(--card) 0%, rgba(12,15,24,0.5) 100%);
+  border:1px solid var(--accent-2);
+  border-radius:12px;
+  padding:15px;
+  text-align:center;
+  transition:0.3s;
+  animation:fadeIn 0.5s ease;
+  cursor:pointer;
+}
+
+.skill-card:active{
+  transform:scale(0.98);
+}
+
+@media (hover: hover) {
+  .skill-card:hover{
+    transform:translateY(-5px);
+    border-color:var(--accent);
+    box-shadow:0 0 20px rgba(76,201,240,0.3);
+  }
+}
+
+.skill-card .icon{
+  font-size:2.2rem;
+  margin-bottom:8px;
+}
+
+@media (max-width: 480px) {
+  .skill-card .icon{
+    font-size:1.8rem;
+  }
+}
+
+.skill-card .name{
+  font-weight:600;
+  color:var(--accent);
+  margin-bottom:5px;
+  font-size:0.9rem;
+}
+
+.skill-card .category{
+  color:var(--muted);
+  font-size:0.8rem;
+  margin-bottom:5px;
+}
+
+.empty-message{
+  text-align:center;
+  color:var(--muted);
+  padding:40px 20px;
+  font-size:1rem;
+}
+
+.stats{
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  margin-top:20px;
+  flex-wrap:wrap;
+}
+
+@media (max-width: 480px) {
+  .stats{
+    gap:15px;
+  }
+}
+
+.stat{
+  text-align:center;
+}
+
+.stat .number{
+  font-size:1.8rem;
+  font-weight:700;
+  color:var(--accent);
+}
+
+.stat .label{
+  color:var(--muted);
+  font-size:0.85rem;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar{
+  width:8px;
+  height:8px;
+}
+
+::-webkit-scrollbar-track{
+  background:var(--card);
+}
+
+::-webkit-scrollbar-thumb{
+  background:var(--accent-2);
+  border-radius:4px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+  background:var(--accent);
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>Skills Tree</h1>
+  <p>Master calisthenics movements</p>
+  <div class="nav-buttons">
+    <button onclick="showPage('tree')" class="active" id="btn-tree">Map</button>
+    <button onclick="showPage('mastered')" id="btn-mastered">Mastered</button>
+    <button onclick="resetAll()" class="reset-btn" title="Clear all progress">🔄</button>
+  </div>
+</div>
+  <div class="tree-container">
+    <svg viewBox="0 0 1200 700">
+
+      <!-- CATEGORY TITLES -->
+      <text x="200" y="60" class="category">PUSH</text>
+      <text x="500" y="60" class="category">PULL</text>
+      <text x="800" y="60" class="category">CORE</text>
+      <text x="1050" y="60" class="category">LEGS</text>
+
+      <!-- LINES PUSH -->
+      <line x1="200" y1="120" x2="200" y2="200" class="line"/>
+      <line x1="200" y1="200" x2="200" y2="280" class="line"/>
+      <line x1="200" y1="280" x2="200" y2="360" class="line"/>
+
+      <!-- PUSH NODES -->
+      <circle cx="200" cy="120" r="26" class="skill" data-id="push-ups" data-name="Push-Ups" data-category="PUSH" data-prerequisites=""/>
+      <text x="200" y="165" class="label">Push-Ups</text>
+
+      <circle cx="200" cy="200" r="26" class="skill" data-id="pike-push-ups" data-name="Pike Push-Ups" data-category="PUSH" data-prerequisites="push-ups"/>
+      <text x="200" y="245" class="label">Pike Push-Ups</text>
+
+      <circle cx="200" cy="280" r="26" class="skill" data-id="handstand" data-name="Handstand" data-category="PUSH" data-prerequisites="pike-push-ups"/>
+      <text x="200" y="325" class="label">Handstand</text>
+
+      <circle cx="200" cy="360" r="26" class="skill locked" data-id="planche" data-name="Planche" data-category="PUSH" data-prerequisites="handstand"/>
+      <text x="200" y="405" class="label">Planche</text>
+
+      <!-- LINES PULL -->
+      <line x1="500" y1="120" x2="500" y2="200" class="line"/>
+      <line x1="500" y1="200" x2="500" y2="280" class="line"/>
+      <line x1="500" y1="280" x2="500" y2="360" class="line"/>
+
+      <!-- PULL NODES -->
+      <circle cx="500" cy="120" r="26" class="skill" data-id="rows" data-name="Rows" data-category="PULL" data-prerequisites=""/>
+      <text x="500" y="165" class="label">Rows</text>
+
+      <circle cx="500" cy="200" r="26" class="skill" data-id="pull-ups" data-name="Pull-Ups" data-category="PULL" data-prerequisites="rows"/>
+      <text x="500" y="245" class="label">Pull-Ups</text>
+
+      <circle cx="500" cy="280" r="26" class="skill" data-id="muscle-up" data-name="Muscle-Up" data-category="PULL" data-prerequisites="pull-ups"/>
+      <text x="500" y="325" class="label">Muscle-Up</text>
+
+      <circle cx="500" cy="360" r="26" class="skill locked" data-id="front-lever" data-name="Front Lever" data-category="PULL" data-prerequisites="muscle-up"/>
+      <text x="500" y="405" class="label">Front Lever</text>
+
+      <!-- CORE -->
+      <line x1="800" y1="120" x2="800" y2="200" class="line"/>
+      <line x1="800" y1="200" x2="800" y2="280" class="line"/>
+      <line x1="800" y1="280" x2="800" y2="360" class="line"/>
+
+      <circle cx="800" cy="120" r="26" class="skill" data-id="plank" data-name="Plank" data-category="CORE" data-prerequisites=""/>
+      <text x="800" y="165" class="label">Plank</text>
+
+      <circle cx="800" cy="200" r="26" class="skill" data-id="hanging-raises" data-name="Hanging Raises" data-category="CORE" data-prerequisites="plank"/>
+      <text x="800" y="245" class="label">Hanging Raises</text>
+
+      <circle cx="800" cy="280" r="26" class="skill" data-id="l-sit" data-name="L-Sit" data-category="CORE" data-prerequisites="hanging-raises"/>
+      <text x="800" y="325" class="label">L-Sit</text>
+
+      <circle cx="800" cy="360" r="26" class="skill locked" data-id="v-sit" data-name="V-Sit" data-category="CORE" data-prerequisites="l-sit"/>
+      <text x="800" y="405" class="label">V-Sit</text>
+
+      <!-- LEGS -->
+      <line x1="1050" y1="120" x2="1050" y2="200" class="line"/>
+      <line x1="1050" y1="200" x2="1050" y2="280" class="line"/>
+
+      <circle cx="1050" cy="120" r="26" class="skill" data-id="squats" data-name="Squats" data-category="LEGS" data-prerequisites=""/>
+      <text x="1050" y="165" class="label">Squats</text>
+
+      <circle cx="1050" cy="200" r="26" class="skill" data-id="pistol-assist" data-name="Pistol (Assist)" data-category="LEGS" data-prerequisites="squats"/>
+      <text x="1050" y="245" class="label">Pistol (Assist)</text>
+
+      <circle cx="1050" cy="280" r="26" class="skill locked" data-id="pistol" data-name="Pistol" data-category="LEGS" data-prerequisites="pistol-assist"/>
+      <text x="1050" y="325" class="label">Pistol</text>
+
+    </svg>
+  </div>
+</div>
+
+<!-- MASTERED SKILLS PAGE -->
+<div id="mastered" class="page">
+  <div class="mastered-container">
+    <div class="mastered-header">
+      <h2>⭐ Mastered</h2>
+      <p>Skills you've conquered</p>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="skills-grid" id="mastered-grid"></div>
+  </div>
+</div>
+
+<!-- SKILL DESCRIPTION MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-title">Skill Name</h2>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const tooltip = document.getElementById("tooltip");
+const masteredGrid = document.getElementById("mastered-grid");
+const statsContainer = document.getElementById("stats");
+const modal = document.getElementById("modal");
+
+// Skill data with icons
+const skillIcons = {
+  "push-ups": "💪",
+  "pike-push-ups": "🔼",
+  "handstand": "🤸",
+  "planche": "✨",
+  "rows": "🚣",
+  "pull-ups": "⬆️",
+  "muscle-up": "🎯",
+  "front-lever": "⚡",
+  "plank": "📊",
+  "hanging-raises": "🪂",
+  "l-sit": "⏸️",
+  "v-sit": "🔺",
+  "squats": "🦵",
+  "pistol-assist": "🧘",
+  "pistol": "🏆"
+};
+
+// Skill descriptions with how-to guides
+const skillDescriptions = {
+  "push-ups": {
+    description: "The foundation of upper body strength. Push-ups build chest, shoulders, and triceps.",
+    steps: [
+      "Start in a plank position with hands shoulder-width apart",
+      "Lower your body until your chest nearly touches the ground",
+      "Keep your elbows close to your body (not flared out)",
+      "Push back up to starting position",
+      "Do 3 sets of 10-15 reps"
+    ],
+    tips: [
+      "Keep your body in a straight line from head to heels",
+      "Engage your core throughout the movement",
+      "If too difficult, start on your knees or against a wall"
+    ]
+  },
+  "pike-push-ups": {
+    description: "An advanced push-up variation that targets shoulders and upper chest more intensely.",
+    steps: [
+      "Start in a downward dog position (legs extended, hips high)",
+      "Your body should form an inverted V shape",
+      "Lower your head toward the ground between your hands",
+      "Push back up to the starting position",
+      "Do 3 sets of 8-12 reps"
+    ],
+    tips: [
+      "This builds the shoulder strength needed for handstands",
+      "Keep your core tight and hips high",
+      "Your head should move in an arc path"
+    ]
+  },
+  "handstand": {
+    description: "A fundamental skill that develops balance, core strength, and shoulder stability.",
+    steps: [
+      "Start with your hands on the ground, shoulder-width apart",
+      "Walk your feet up a wall gradually",
+      "Hold the handstand position for 10-30 seconds",
+      "Practice daily to build balance and strength",
+      "Work up to holding without wall support"
+    ],
+    tips: [
+      "Always practice with a wall nearby for safety",
+      "Engage your core and glutes to prevent arching",
+      "Position your hands under your shoulders",
+      "Spend time daily getting comfortable upside down"
+    ]
+  },
+  "planche": {
+    description: "One of the most impressive bodyweight skills. Requires extreme upper body and core strength.",
+    steps: [
+      "Progress through easier variations first (lean planche, advanced tuck planche)",
+      "Hold a planche lean for 5-10 seconds initially",
+      "Gradually reduce the angle your body makes with the ground",
+      "Work toward a full planche hold",
+      "Practice holds and press progressions"
+    ],
+    tips: [
+      "This typically takes 6-12 months of dedicated training",
+      "Focus on wrist conditioning to prevent injury",
+      "Shoulder blade protraction is key",
+      "Train supporting exercises like push-ups and planks daily"
+    ]
+  },
+  "rows": {
+    description: "Essential for back strength and pulling power. Can be done with rings, bar, or resistance band.",
+    steps: [
+      "Grab a horizontal bar with hands shoulder-width apart",
+      "Position your body at an angle (adjust angle for difficulty)",
+      "Pull your chest toward the bar by bending elbows",
+      "Lower yourself back to starting position",
+      "Do 3 sets of 8-12 reps"
+    ],
+    tips: [
+      "Keep your body rigid from head to heels",
+      "Squeeze your shoulder blades together at the top",
+      "Control the descent, don't just drop"
+    ]
+  },
+  "pull-ups": {
+    description: "The gold standard for upper body pulling strength. Builds back, biceps, and grip strength.",
+    steps: [
+      "Grab a pull-up bar with hands slightly wider than shoulder-width",
+      "Pull yourself up until your chin clears the bar",
+      "Lower yourself under control back to starting position",
+      "Do 3 sets of as many reps as possible (aim for 5+)"
+    ],
+    tips: [
+      "Start with assisted pull-ups or resistance bands if needed",
+      "Engage your lats, not just your arms",
+      "Full range of motion is important",
+      "Practice dead hangs to build grip strength"
+    ]
+  },
+  "muscle-up": {
+    description: "A compound movement combining a pull-up and a dip. Requires significant pulling and pressing power.",
+    steps: [
+      "Perform a pull-up but continue pulling past the bar",
+      "Transition from pull to a dip position",
+      "Press yourself up into a full dip",
+      "Lower yourself down with control",
+      "Do 3 sets of 3-5 reps"
+    ],
+    tips: [
+      "Master pull-ups and dips before attempting muscle-ups",
+      "Generate momentum from the pull",
+      "Practice the transition on lower bars or rings",
+      "This is an advanced skill - be patient with progression"
+    ]
+  },
+  "front-lever": {
+    description: "An advanced static hold where your body stays parallel to the ground while hanging.",
+    steps: [
+      "Start with the front lever progression (tucked position)",
+      "Progress to single-leg and eventually full front lever",
+      "Hold for 5-15 seconds initially",
+      "Build up to 30+ second holds",
+      "Practice 2-3 times per week"
+    ],
+    tips: [
+      "Requires 6-18 months of dedicated training",
+      "Focus on straight-arm pulling strength",
+      "Keep your body in a perfect horizontal line",
+      "Use rings or a high bar for training"
+    ]
+  },
+  "plank": {
+    description: "A fundamental core stability exercise. Essential foundation for advanced movements.",
+    steps: [
+      "Start face down on your elbows and forearms",
+      "Keep your body in a straight line from head to heels",
+      "Engage your core and glutes",
+      "Hold for 30-60 seconds initially",
+      "Progress to longer holds or variations"
+    ],
+    tips: [
+      "Don't let your hips sag or pike",
+      "Breathe consistently throughout the hold",
+      "Start with wall or knee planks if too difficult",
+      "Aim for holds of 2+ minutes eventually"
+    ]
+  },
+  "hanging-raises": {
+    description: "Excellent for lower core and lower back strength. Builds toward L-sit and leg raises.",
+    steps: [
+      "Hang from a pull-up bar with arms straight",
+      "Raise your legs from your hips to parallel with the ground",
+      "Lower legs under control",
+      "Do 3 sets of 8-12 reps"
+    ],
+    tips: [
+      "Keep your core tight throughout",
+      "Avoid swinging - move deliberately",
+      "Start with bent knees if needed",
+      "Engage your lower abs, not just hip flexors"
+    ]
+  },
+  "l-sit": {
+    description: "A challenging static hold that combines core and arm strength. Critical skill for advanced moves.",
+    steps: [
+      "Sit with legs extended in front of you",
+      "Place hands on the ground beside you",
+      "Push yourself up until your body is parallel to ground",
+      "Keep legs straight",
+      "Hold for 10-30 seconds initially"
+    ],
+    tips: [
+      "Engage your quads to keep legs straight",
+      "Protract your shoulder blades",
+      "Start on parallettes or blocks (less wrist strain)",
+      "Can also be performed hanging from a bar"
+    ]
+  },
+  "v-sit": {
+    description: "An advanced progression of the L-sit where your legs are raised higher toward your chest.",
+    steps: [
+      "Start with an L-sit hold",
+      "Gradually raise your legs higher",
+      "Eventually bring your legs vertical",
+      "Hold the position for 5-15 seconds",
+      "Do 3-5 sets of holds"
+    ],
+    tips: [
+      "This is an extremely advanced skill",
+      "Takes significant core and arm strength",
+      "Practice the progression methodically",
+      "Can take 6+ months to achieve"
+    ]
+  },
+  "squats": {
+    description: "The fundamental leg exercise. Builds lower body strength and endurance.",
+    steps: [
+      "Stand with feet shoulder-width apart",
+      "Lower your hips back and down as if sitting in a chair",
+      "Keep chest up and knees tracking over toes",
+      "Push through heels to return to start",
+      "Do 3 sets of 12-15 reps"
+    ],
+    tips: [
+      "Go as low as your mobility allows",
+      "Keep weight in your heels",
+      "Engage your core throughout",
+      "Progress to pistol squats eventually"
+    ]
+  },
+  "pistol-assist": {
+    description: "A single-leg squat with assistance. Perfect for building toward unassisted pistol squats.",
+    steps: [
+      "Hold onto a pole, resistance band, or rope for balance",
+      "Stand on one leg",
+      "Lower yourself into a single-leg squat",
+      "Go as deep as comfortable",
+      "Push through heel to return",
+      "Do 3 sets of 8-12 reps per leg"
+    ],
+    tips: [
+      "Focus on depth and control over speed",
+      "Your torso should stay upright",
+      "Use assistance to balance, not for pulling power",
+      "This is a stepping stone to pistols"
+    ]
+  },
+  "pistol": {
+    description: "An impressive single-leg squat that requires significant leg strength and balance.",
+    steps: [
+      "Stand on one leg with arms extended forward for balance",
+      "Lower yourself down using one leg",
+      "Go as deep as you can without falling backward",
+      "Push through heel to return to standing",
+      "Do 3 sets of 5-8 reps per leg"
+    ],
+    tips: [
+      "Requires months of practice to achieve",
+      "Mobility is as important as strength",
+      "Practice wall-assisted pistols first",
+      "Keep your upper body forward and engaged"
+    ]
+  }
+};
+
+// Initialize from localStorage
+function getCompletedSkills() {
+  const saved = localStorage.getItem('calisthenics-skills');
+  return saved ? JSON.parse(saved) : [];
+}
+
+function saveCompletedSkills(skills) {
+  localStorage.setItem('calisthenics-skills', JSON.stringify(skills));
+}
+
+// Reset all progress
+function resetAll() {
+  if (confirm('Clear all progress? This cannot be undone!')) {
+    localStorage.removeItem('calisthenics-skills');
+    updateSkillStates();
+    showNotification('🔄 Progress cleared!');
+    if (document.getElementById('mastered').classList.contains('active')) {
+      renderMasteredSkills();
+    }
+  }
+}
+
+// Check if prerequisites are met
+function canUnlock(skillEl) {
+  const prerequisites = skillEl.dataset.prerequisites;
+  if (!prerequisites) return true;
+  
+  const completed = getCompletedSkills();
+  const prereqList = prerequisites.split(',').filter(p => p);
+  return prereqList.every(prereq => completed.includes(prereq));
+}
+
+// Update locked state
+function updateSkillStates() {
+  document.querySelectorAll('.skill').forEach(skill => {
+    const completed = getCompletedSkills();
+    const skillId = skill.dataset.id;
+    
+    if (completed.includes(skillId)) {
+      skill.classList.add('completed');
+      skill.classList.remove('locked');
+    } else if (canUnlock(skill)) {
+      skill.classList.remove('locked');
+    } else {
+      skill.classList.add('locked');
+    }
+  });
+}
+
+// Open skill description modal
+function openSkillModal(skillEl) {
+  const skillId = skillEl.dataset.id;
+  const skillName = skillEl.dataset.name;
+  const isCompleted = skillEl.classList.contains('completed');
+  
+  document.getElementById('modal-title').textContent = skillName + ' ' + skillIcons[skillId];
+  
+  const desc = skillDescriptions[skillId];
+  let html = `
+    <div class="skill-description">
+      <h3>About This Skill</h3>
+      <p>${desc.description}</p>
+    </div>
+    
+    <div class="skill-steps">
+      <strong>How to Perform:</strong>
+      <ol>
+        ${desc.steps.map(step => `<li>${step}</li>`).join('')}
+      </ol>
+    </div>
+    
+    <div class="tips">
+      <strong>💡 Tips & Advice:</strong>
+      ${desc.tips.map(tip => `<p>• ${tip}</p>`).join('')}
+    </div>
+  `;
+  
+  if (!isCompleted) {
+    html += `<button class="master-btn" onclick="masterSkillFromModal('${skillId}')">${skillEl.classList.contains('locked') ? 'Locked - Unlock Prerequisites First' : 'Master This Skill ✓'}</button>`;
+  } else {
+    html += `<button class="master-btn" disabled>✓ Already Mastered!</button>`;
+  }
+  
+  document.getElementById('modal-body').innerHTML = html;
+  modal.classList.add('active');
+}
+
+function closeModal() {
+  modal.classList.remove('active');
+}
+
+function masterSkillFromModal(skillId) {
+  const skillEl = document.querySelector(`[data-id="${skillId}"]`);
+  if (!skillEl.classList.contains('locked')) {
+    completeSkill(skillEl);
+    closeModal();
+    updateSkillStates();
+  }
+}
+
+// Complete a skill
+function completeSkill(skillEl) {
+  const skillId = skillEl.dataset.id;
+  const skillName = skillEl.dataset.name;
+  const completed = getCompletedSkills();
+  
+  if (!completed.includes(skillId)) {
+    completed.push(skillId);
+    saveCompletedSkills(completed);
+    
+    // Show notification
+    showNotification(`✅ ${skillName}!`);
+    
+    // Update UI
+    updateSkillStates();
+  }
+}
+
+function showNotification(message) {
+  const notif = document.createElement('div');
+  notif.className = 'notification';
+  notif.textContent = message;
+  document.body.appendChild(notif);
+  setTimeout(() => notif.remove(), 3000);
+}
+
+// Render mastered skills page
+function renderMasteredSkills() {
+  const completed = getCompletedSkills();
+  
+  if (completed.length === 0) {
+    masteredGrid.innerHTML = '<div class="empty-message">Click skills to master them! 💪</div>';
+    statsContainer.innerHTML = '';
+    return;
+  }
+  
+  masteredGrid.innerHTML = '';
+  const categories = {};
+  
+  document.querySelectorAll('.skill').forEach(skill => {
+    const skillId = skill.dataset.id;
+    if (completed.includes(skillId)) {
+      const category = skill.dataset.category;
+      if (!categories[category]) categories[category] = 0;
+      categories[category]++;
+      
+      const card = document.createElement('div');
+      card.className = 'skill-card';
+      card.onclick = () => openSkillModal(skill);
+      card.innerHTML = `
+        <div class="icon">${skillIcons[skillId] || '🎯'}</div>
+        <div class="name">${skill.dataset.name}</div>
+        <div class="category">${category}</div>
+      `;
+      masteredGrid.appendChild(card);
+    }
+  });
+  
+  // Show stats
+  const totalCategories = Object.keys(categories).length;
+  const totalSkills = completed.length;
+  statsContainer.innerHTML = `
+    <div class="stat">
+      <div class="number">${totalSkills}</div>
+      <div class="label">Skills</div>
+    </div>
+    <div class="stat">
+      <div class="number">${totalCategories}</div>
+      <div class="label">Categories</div>
+    </div>
+  `;
+}
+
+// Page navigation
+function showPage(pageName) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageName).classList.add('active');
+  
+  document.querySelectorAll('.nav-buttons button:not(.reset-btn)').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + pageName).classList.add('active');
+  
+  if (pageName === 'mastered') {
+    renderMasteredSkills();
+  }
+}
+
+// Tooltip interaction
+document.querySelectorAll(".skill").forEach(skill => {
+  skill.addEventListener("mousemove", e => {
+    const isLocked = skill.classList.contains("locked");
+    const isCompleted = skill.classList.contains("completed");
+    
+    tooltip.style.left = e.clientX + 15 + "px";
+    tooltip.style.top = e.clientY + 15 + "px";
+    tooltip.style.opacity = 1;
+    
+    if (isCompleted) {
+      tooltip.innerHTML = `✅ ${skill.dataset.name}<br><small>Mastered!</small>`;
+    } else if (isLocked) {
+      const prerequisites = skill.dataset.prerequisites.split(',').filter(p => p);
+      tooltip.innerHTML = `🔒 Locked<br><small>Requires: ${prerequisites.join(', ')}</small>`;
+    } else {
+      tooltip.innerHTML = `🎯 ${skill.dataset.name}<br><small>Tap to learn</small>`;
+    }
+  });
+
+  skill.addEventListener("mouseleave", () => {
+    tooltip.style.opacity = 0;
+  });
+  
+  skill.addEventListener("click", e => {
+    e.preventDefault();
+    if (!skill.classList.contains("locked")) {
+      openSkillModal(skill);
+    }
+  });
+});
+
+// Close modal on overlay click
+modal.addEventListener('click', e => {
+  if (e.target === modal) closeModal();
+});
+
+// Prevent modal close when clicking content
+document.querySelector('.modal-content').addEventListener('click', e => {
+  e.stopPropagation();
+});
+
+// Initialize
+updateSkillStates();
+</script>
+
+</body>
+</html>
