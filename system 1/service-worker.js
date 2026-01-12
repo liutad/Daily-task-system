@@ -9,6 +9,7 @@ self.addEventListener("install", e => {
         "Strategy.html",
         "Login.html",
         "Financial-tracker",
+        "skills-tree.html".
         "manifest.json",
         "icons/icon-192.png",
         "icons/icon-512.png"
@@ -22,5 +23,6 @@ self.addEventListener("fetch", e => {
     caches.match(e.request).then(res => res || fetch(e.request))
   );
 });
+
 
 
