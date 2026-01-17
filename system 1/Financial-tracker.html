@@ -1,121 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Tracker</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Ultimate Finance Tracker</title>
 
 <style>
-    body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    max-width: 500px;
-    margin: auto;
-    background-color: #000;
-    color: white;
+:root {
+    --bg:#f4f6f8; --card:#fff; --text:#000; --primary:#007bff;
 }
-
-h1, h2 {
-    text-align: center;
+.dark {
+    --bg:#121212; --card:#1e1e1e; --text:#fff; --primary:#4dabf7;
 }
-
-.input-section {
-    margin-top: 20px;
+body {
+    margin:0; font-family:Arial; background:var(--bg); color:var(--text); padding:15px;
 }
-
-input {
-    margin-right: 10px;
-    padding: 5px;
+h1,h3 { text-align:center; }
+.card {
+    background:var(--card); padding:15px; margin-bottom:15px;
+    border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.15);
 }
-
-.container{
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    border: 2px solid white;
-    border-radius: 4px;
-    padding: 20px;
-    
-
+input,select,button {
+    width:100%; padding:8px; margin-top:6px;
 }
+button {
+    background:var(--primary); color:#fff; border:none; border-radius:6px;
+}
+.progress-bar {
+    background:#ccc; border-radius:20px; overflow:hidden; margin-top:6px;
+}
+.progress {
+    background:#28a745; height:18px; font-size:12px; text-align:center; color:white;
+}
+ul { list-style:none; padding:0; }
+li { background:#eaeaea; margin:5px 0; padding:6px; border-radius:5px; }
+.dark li { background:#333; }
+canvas { width:100%; max-height:200px; }
+.center { text-align:center; }
+.hidden { display:none; }
 </style>
 </head>
+
 <body>
-    
 
-    <div class="container">
-        <h1>My Finance Tracker</h1>
-        <div class="summary">
-        <p>Total Income: $<span id="totalIncome">0</span></p>
-        <p>Total Expenses: $<span id="totalExpenses">0</span></p>
-        <p>Saved Money: $<span id="savedMoney">0</span></p>
-        </div>
+<h1>🤖 AI Ultimate Finance Tracker</h1>
 
-        <div class="input-section">
-        <h2>Add Income</h2>
-        <input type="number" id="incomeAmount" placeholder="Amount">
-        <button onclick="addIncome()">Add Income</button>
-        </div>
+<div class="center">
+    <button onclick="toggleDark()">🌙 Dark Mode</button>
+</div>
 
-        <div class="input-section">
-        <h2>Add Expense</h2>
-        <input type="number" id="expenseAmount" placeholder="Amount">
-        <input type="text" id="expenseCategory" placeholder="Category">
-        <button onclick="addExpense()">Add Expense</button>
-        </div>
+<div class="card">
+    <p><b>Income:</b> $<span id="income">0</span></p>
+    <p><b>Expenses:</b> $<span id="expenses">0</span></p>
+    <p><b>Savings:</b> $<span id="savings">0</span></p>
+</div>
 
-        <div class="input-section">
-        <h2>Set Savings Goal</h2>
-        <input type="number" id="savingGoal" placeholder="Goal">
-        <button onclick="setSavingGoal()">Set Goal</button>
-        </div>
+<div class="card">
+    <h3>🔐 App Lock</h3>
+    <input id="passwordInput" placeholder="Set / Enter password">
+    <button onclick="setPassword()">Save / Unlock</button>
+</div>
 
-    </div>
+<div class="card">
+    <h3>Add Income</h3>
+    <input type="number" id="incomeInput">
+    <button onclick="addIncome()">Add</button>
+</div>
+
+<div class="card">
+    <h3>Add Expense</h3>
+    <input type="number" id="expenseAmount">
+    <select id="expenseCategory">
+        <option>Food</option><option>Transport</option>
+        <option>School</option><option>Entertainment</option><option>Other</option>
+    </select>
+    <input type="date" id="expenseDate">
+    <button onclick="addExpense()">Add</button>
+</div>
+
+<div class="card">
+    <h3>🎯 Add Savings Goal</h3>
+    <input id="goalName" placeholder="Goal name">
+    <input type="number" id="goalAmount" placeholder="Amount">
+    <button onclick="addGoal()">Add Goal</button>
+    <div id="goals"></div>
+</div>
+
+<div class="card">
+    <h3>🔔 Daily Spending Limit</h3>
+    <input type="number" id="limitInput">
+    <button onclick="setLimit()">Set Limit</button>
+</div>
+
+<div class="card">
+    <h3>📊 Expense Chart</h3>
+    <canvas id="chart"></canvas>
+</div>
+
+<div class="card">
+    <h3>📜 Expense History</h3>
+    <ul id="expenseList"></ul>
+    <button onclick="exportCSV()">📤 Export CSV</button>
+</div>
+
+<div class="card">
+    <h3>🤖 AI Spending Advice</h3>
+    <p id="advice"></p>
+</div>
 
 <script>
-    let totalIncome = 0;
-let totalExpenses = 0;
-let savingGoal = 0;
+let income = +localStorage.income || 0;
+let expenses = JSON.parse(localStorage.expenses || "[]");
+let goals = JSON.parse(localStorage.goals || "[]");
+let limit = +localStorage.limit || 0;
+let password = localStorage.password || "";
 
-function updateSummary() {
-    document.getElementById("totalIncome").innerText = totalIncome;
-    document.getElementById("totalExpenses").innerText = totalExpenses;
-    document.getElementById("savedMoney").innerText = totalIncome - totalExpenses;
+function update() {
+    let total = expenses.reduce((s,e)=>s+e.amount,0);
+    let savings = income - total;
+    incomeSpan.textContent = income;
+    expensesSpan.textContent = total;
+    savingsSpan.textContent = savings;
+
+    expenseList.innerHTML="";
+    expenses.forEach(e=>{
+        let li=document.createElement("li");
+        li.textContent=`${e.date} | ${e.category} | $${e.amount}`;
+        expenseList.appendChild(li);
+    });
+
+    goalsDiv.innerHTML="";
+    goals.forEach(g=>{
+        let p=Math.min((savings/g.amount)*100,100);
+        goalsDiv.innerHTML+=`
+        <p>${g.name} ($${g.amount})</p>
+        <div class="progress-bar"><div class="progress" style="width:${p}%">${p.toFixed()}%</div></div>`;
+    });
+
+    aiAdvice(savings,total);
+    drawChart();
 }
 
-function addIncome() {
-    const amount = Number(document.getElementById("incomeAmount").value);
-    if (amount > 0) {
-        totalIncome += amount;
-        updateSummary();
-        document.getElementById("incomeAmount").value = '';
+function addIncome(){
+    let v=+incomeInput.value;
+    if(v>0){ income+=v; localStorage.income=income; incomeInput.value=""; update(); }
+}
+
+function addExpense(){
+    let a=+expenseAmount.value, c=expenseCategory.value, d=expenseDate.value;
+    if(a>0 && d){
+        expenses.push({amount:a,category:c,date:d});
+        localStorage.expenses=JSON.stringify(expenses);
+        let today=expenses.filter(e=>e.date===d).reduce((s,e)=>s+e.amount,0);
+        if(limit && today>limit) alert("⚠️ Daily limit exceeded");
+        update();
     }
 }
 
-function addExpense() {
-    const amount = Number(document.getElementById("expenseAmount").value);
-    const category = document.getElementById("expenseCategory").value;
-    if (amount > 0 && category !== "") {
-        totalExpenses += amount;
-        updateSummary();
-        document.getElementById("expenseAmount").value = '';
-        document.getElementById("expenseCategory").value = '';
+function addGoal(){
+    goals.push({name:goalName.value,amount:+goalAmount.value});
+    localStorage.goals=JSON.stringify(goals);
+    goalName.value=goalAmount.value="";
+    update();
+}
+
+function setLimit(){ limit=+limitInput.value; localStorage.limit=limit; }
+
+function exportCSV(){
+    let csv="Date,Category,Amount\n";
+    expenses.forEach(e=>csv+=`${e.date},${e.category},${e.amount}\n`);
+    let a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+    a.download="expenses.csv"; a.click();
+}
+
+function aiAdvice(savings,spent){
+    let msg="Good job tracking your money.";
+    if(spent>income*0.8) msg="⚠️ You are spending too much. Try saving more.";
+    if(savings>income*0.3) msg="🎉 Excellent saving habits!";
+    advice.textContent=msg;
+}
+
+function drawChart(){
+    let ctx=chart.getContext("2d");
+    ctx.clearRect(0,0,chart.width,chart.height);
+    let data={};
+    expenses.forEach(e=>data[e.category]=(data[e.category]||0)+e.amount);
+    let x=10,max=Math.max(...Object.values(data),1);
+    for(let k in data){
+        let h=(data[k]/max)*150;
+        ctx.fillStyle="#007bff";
+        ctx.fillRect(x,180-h,30,h);
+        ctx.fillText(k,x,195);
+        x+=50;
     }
 }
 
-function setSavingGoal() {
-    const goal = Number(document.getElementById("savingGoal").value);
-    if (goal > 0) {
-        savingGoal = goal;
-        alert(`Saving goal set to $${savingGoal}`);
-        document.getElementById("savingGoal").value = '';
-    }
+function toggleDark(){ document.body.classList.toggle("dark"); }
+
+function setPassword(){
+    let p=passwordInput.value;
+    if(!password){ localStorage.password=p; alert("Password set"); }
+    else if(p===password){ alert("Unlocked"); }
 }
 
+update();
 </script>
+
 </body>
 </html>
