@@ -2,215 +2,104 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daily Task System</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
-  *{box-sizing:border-box}
-  body{font-family:'Segoe UI',sans-serif;background:#f1f5f9;margin:0}
-  .pl-high{border-left:4px solid #ef4444}
-  .pl-medium{border-left:4px solid #f59e0b}
-  .pl-low{border-left:4px solid #22c55e}
-  .done-card{opacity:.55}
-  .done-title{text-decoration:line-through}
-  .btn{transition:all .15s}
-  .btn:active{transform:scale(0.97)}
+body{
+  font-family:'Poppins',sans-serif;
+  margin:0;padding:0;
+  min-height:100vh;
+  background:#000;
+  color:#fff;
+  overflow-x:hidden;
+}
+@keyframes float{
+  0%{transform:translateY(0)}
+  50%{transform:translateY(-15px)}
+  100%{transform:translateY(0)}
+}
+.particle{
+  position:absolute;
+  width:5px;height:5px;
+  background:rgba(255,255,255,0.15);
+  border-radius:50%;
+  animation:float 4s ease-in-out infinite;
+}
+.container-mobile{
+  max-width:420px;
+  margin:auto;
+  padding:20px;
+  text-align:center;
+  position:relative;
+  z-index:1;
+}
+@keyframes fadeSlide{
+  0%{opacity:0;transform:translateY(20px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+.title{padding-top:120px;text-align:center;}
+.title h1{font-weight:700;margin:0;color:#fff;animation:fadeSlide 1.5s ease forwards;}
+.title h1:first-child{font-size:3rem;line-height:1.1;}
+.title h1:last-child{font-size:2.4rem;line-height:1.2;margin-bottom:10px;}
+.title p{margin-top:15px;font-size:1.1rem;color:#ccc;}
+.btn-start{
+  margin-top:30px;
+  background:#fff;color:#000;
+  border:2px solid #fff;
+  border-radius:50px;
+  padding:12px 0;
+  font-weight:600;
+  transition:all 0.3s ease;
+}
+.btn-start:hover{
+  background:#000;color:#fff;
+  border:2px solid #fff;
+  transform:translateY(-2px);
+  box-shadow:0 0 10px rgba(255,255,255,0.3);
+}
+.navbar{background:rgba(0,0,0,0.8)!important;border-bottom:1px solid #333;}
+.navbar .container-fluid{max-width:420px;margin:auto;}
+.particle:nth-child(1){top:20%;left:10%;animation-duration:6s;}
+.particle:nth-child(2){top:70%;left:80%;animation-duration:8s;}
+.particle:nth-child(3){top:50%;left:40%;animation-duration:5s;}
+.particle:nth-child(4){top:80%;left:20%;animation-duration:7s;}
+.particle:nth-child(5){top:30%;left:70%;animation-duration:6.5s;}
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const {useState,useEffect,useMemo}=React;
-const TODAY=new Date().toISOString().split('T')[0];
-const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-const d=new Date();
-const DATE_STR=DAYS[d.getDay()]+', '+MONTHS[d.getMonth()]+' '+d.getDate();
-
-function load(k,def){try{return JSON.parse(localStorage.getItem(k))||def}catch{return def}}
-function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
-
-function Badge({p}){
-  const c={high:'bg-red-100 text-red-700',medium:'bg-amber-100 text-amber-700',low:'bg-green-100 text-green-700'};
-  return <span className={'text-xs font-semibold px-2 py-0.5 rounded-full capitalize '+c[p]}>{p}</span>;
-}
-
-function Card({t,onToggle,onDel}){
-  const overdue=t.dueDate&&t.dueDate<TODAY&&!t.done;
-  return(
-    <div className={'bg-white rounded-xl p-4 flex gap-3 items-start shadow-sm pl-'+t.priority+' '+(t.done?'done-card':'')}>
-      <button onClick={()=>onToggle(t.id)} className="mt-0.5 flex-shrink-0 btn">
-        <div className={'w-5 h-5 rounded-full border-2 flex items-center justify-center '+(t.done?'bg-indigo-500 border-indigo-500':'border-gray-300')}>
-          {t.done&&<svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
-        </div>
-      </button>
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className={'font-medium text-sm text-gray-800 '+(t.done?'done-title':'')}>{t.title}</span>
-          <Badge p={t.priority}/>
-        </div>
-        {t.desc&&<p className="text-xs text-gray-500 mt-1">{t.desc}</p>}
-        {t.dueDate&&<p className={'text-xs mt-1 '+(overdue?'text-red-500 font-semibold':'text-gray-400')}>Due: {t.dueDate}{overdue?' (overdue)':''}</p>}
-      </div>
-      <button onClick={()=>onDel(t.id)} className="text-gray-300 hover:text-red-400 btn flex-shrink-0">
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<nav class="navbar navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="index.html">System</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mt-3">
+        <li class="nav-item"><a class="nav-link" href="system 1/Task.html">Tasks</a></li>
+        <li class="nav-item"><a class="nav-link" href="system 1/Performances.html">Performances</a></li>
+        <li class="nav-item"><a class="nav-link" href="system 1/Strategy.html">Strategy</a></li>
+        <li class="nav-item"><a class="nav-link" href="system 1/Financial-tracker.html">Financial tracker</a></li>
+        <li class="nav-item"><a class="nav-link" href="system 1/skills-tree.html">Skills tree</a></li>
+        <li class="nav-item"><a class="nav-link" href="system 1/loginpage.html">Login</a></li>
+      </ul>
     </div>
-  );
-}
-
-function Modal({onAdd,onClose}){
-  const [title,setTitle]=useState('');
-  const [desc,setDesc]=useState('');
-  const [priority,setPriority]=useState('medium');
-  const [due,setDue]=useState(TODAY);
-  function submit(e){
-    e.preventDefault();
-    if(!title.trim())return;
-    onAdd({id:Date.now(),title:title.trim(),desc:desc.trim(),priority,dueDate:due,done:false});
-    onClose();
-  }
-  return(
-    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:50,padding:'1rem'}}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-gray-800">New Task</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 btn">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
-        </div>
-        <form onSubmit={submit} style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
-          <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Title *</label>
-            <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="What needs to be done?" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm" required/>
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Notes</label>
-            <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Optional..." rows={2} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none"/>
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.75rem'}}>
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Priority</label>
-              <select value={priority} onChange={e=>setPriority(e.target.value)} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Due Date</label>
-              <input type="date" value={due} onChange={e=>setDue(e.target.value)} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm"/>
-            </div>
-          </div>
-          <button type="submit" className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg py-2.5 text-sm btn">Add Task</button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function App(){
-  const [tasks,setTasks]=useState(()=>load('dts_tasks',[]));
-  const [streak,setStreak]=useState(()=>load('dts_streak',{count:0,last:''}));
-  const [filter,setFilter]=useState('all');
-  const [modal,setModal]=useState(false);
-
-  useEffect(()=>save('dts_tasks',tasks),[tasks]);
-  useEffect(()=>save('dts_streak',streak),[streak]);
-
-  const todayTasks=useMemo(()=>tasks.filter(t=>!t.dueDate||t.dueDate<=TODAY),[tasks]);
-
-  useEffect(()=>{
-    const all=todayTasks.length>0&&todayTasks.every(t=>t.done);
-    if(all&&streak.last!==TODAY){
-      const yest=new Date(Date.now()-86400000).toISOString().split('T')[0];
-      setStreak({count:streak.last===yest?streak.count+1:1,last:TODAY});
-    }
-  },[todayTasks]);
-
-  function addTask(t){setTasks(p=>[t,...p]);}
-  function toggle(id){setTasks(p=>p.map(t=>t.id===id?{...t,done:!t.done}:t));}
-  function del(id){setTasks(p=>p.filter(t=>t.id!==id));}
-  function clearDone(){setTasks(p=>p.filter(t=>!t.done));}
-
-  const visible=useMemo(()=>{
-    if(filter==='active')return todayTasks.filter(t=>!t.done);
-    if(filter==='completed')return todayTasks.filter(t=>t.done);
-    return todayTasks;
-  },[todayTasks,filter]);
-
-  const total=todayTasks.length;
-  const done=todayTasks.filter(t=>t.done).length;
-  const pct=total>0?Math.round(done/total*100):0;
-
-  return(
-    <div style={{minHeight:'100vh',background:'#f1f5f9'}}>
-      {modal&&<Modal onAdd={addTask} onClose={()=>setModal(false)}/>}
-      <div style={{maxWidth:480,margin:'0 auto',padding:'2rem 1rem'}}>
-
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'1.5rem'}}>
-          <div>
-            <h1 style={{fontSize:'1.5rem',fontWeight:700,color:'#1e293b',margin:0}}>Daily Tasks</h1>
-            <p style={{fontSize:'0.8rem',color:'#94a3b8',margin:'2px 0 0'}}>{DATE_STR}</p>
-          </div>
-          <div style={{textAlign:'right'}}>
-            <div style={{fontSize:'1.75rem'}}>{streak.count>0?'🔥':'⭕'}</div>
-            <p style={{fontSize:'0.7rem',color:'#94a3b8',margin:0}}>{streak.count} day streak</p>
-          </div>
-        </div>
-
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'0.75rem',marginBottom:'1.5rem'}}>
-          {[['Total',total,'#eef2ff','#4f46e5'],['Done',done,'#f0fdf4','#16a34a'],['Left',total-done,'#fffbeb','#d97706']].map(([l,v,bg,col])=>(
-            <div key={l} style={{background:bg,borderRadius:12,padding:'0.75rem',textAlign:'center'}}>
-              <div style={{fontSize:'1.5rem',fontWeight:700,color:col}}>{v}</div>
-              <div style={{fontSize:'0.65rem',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.05em',color:col}}>{l}</div>
-            </div>
-          ))}
-        </div>
-
-        {total>0&&(
-          <div style={{marginBottom:'1.25rem'}}>
-            <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.75rem',color:'#94a3b8',marginBottom:4}}>
-              <span>Progress</span><span>{pct}%</span>
-            </div>
-            <div style={{height:8,background:'#e2e8f0',borderRadius:99,overflow:'hidden'}}>
-              <div style={{height:'100%',width:pct+'%',background:'#6366f1',borderRadius:99,transition:'width .5s'}}/>
-            </div>
-          </div>
-        )}
-
-        <div style={{display:'flex',gap:'0.5rem',marginBottom:'1rem',flexWrap:'wrap'}}>
-          {['all','active','completed'].map(f=>(
-            <button key={f} onClick={()=>setFilter(f)} className="btn" style={{padding:'0.35rem 0.9rem',borderRadius:8,fontSize:'0.75rem',fontWeight:600,textTransform:'capitalize',border:'none',cursor:'pointer',background:filter===f?'#6366f1':'white',color:filter===f?'white':'#64748b'}}>{f}</button>
-          ))}
-          {done>0&&<button onClick={clearDone} className="btn" style={{marginLeft:'auto',padding:'0.35rem 0.9rem',borderRadius:8,fontSize:'0.75rem',fontWeight:600,border:'none',cursor:'pointer',background:'white',color:'#f87171'}}>Clear done</button>}
-        </div>
-
-        <div style={{display:'flex',flexDirection:'column',gap:'0.75rem',marginBottom:'1.5rem'}}>
-          {visible.length===0?(
-            <div style={{textAlign:'center',padding:'3rem 0',color:'#94a3b8'}}>
-              <div style={{fontSize:'2.5rem',marginBottom:8}}>{filter==='completed'?'🎉':'📋'}</div>
-              <p style={{fontSize:'0.85rem',margin:0}}>{filter==='completed'?'No completed tasks yet':'No tasks — add one!'}</p>
-            </div>
-          ):visible.map(t=>(
-            <Card key={t.id} t={t} onToggle={toggle} onDel={del}/>
-          ))}
-        </div>
-
-        <button onClick={()=>setModal(true)} className="btn" style={{width:'100%',background:'#6366f1',color:'white',border:'none',borderRadius:12,padding:'0.85rem',fontSize:'0.9rem',fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'0.5rem'}}>
-          <svg style={{width:20,height:20}} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
-          Add Task
-        </button>
-      </div>
-    </div>
-  );
-}
-
-const root=ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App/>);
-</script>
+  </div>
+</nav>
+<div class="container-mobile">
+  <div class="title">
+    <h1>Daily Task</h1>
+    <h1>System</h1>
+    <p>Boost your productivity</p>
+    <a href="system 1/system1.html" class="btn btn-start w-100">Start</a>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
