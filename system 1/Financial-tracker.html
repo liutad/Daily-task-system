@@ -3,110 +3,311 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Ultimate Finance Tracker</title>
-
+<title>Ledger — Money Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root {
-    --bg:#f4f6f8; --card:#fff; --text:#000; --primary:#007bff;
-}
-.dark {
-    --bg:#121212; --card:#1e1e1e; --text:#fff; --primary:#4dabf7;
-}
-body {
-    margin:0; font-family:Arial; background:var(--bg); color:var(--text); padding:15px;
-}
-h1,h3 { text-align:center; }
-.card {
-    background:var(--card); padding:15px; margin-bottom:15px;
-    border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.15);
-}
-input,select,button {
-    width:100%; padding:8px; margin-top:6px;
-}
-button {
-    background:var(--primary); color:#fff; border:none; border-radius:6px;
-}
-.progress-bar {
-    background:#ccc; border-radius:20px; overflow:hidden; margin-top:6px;
-}
-.progress {
-    background:#28a745; height:18px; font-size:12px; text-align:center; color:white;
-}
-ul { list-style:none; padding:0; }
-li { background:#eaeaea; margin:5px 0; padding:6px; border-radius:5px; }
-.dark li { background:#333; }
-canvas { width:100%; max-height:200px; }
-.center { text-align:center; }
-.hidden { display:none; }
+  :root {
+    --paper: #F6F3EC;
+    --card: #FFFFFF;
+    --ink: #1F2A24;
+    --ink-soft: #5B6660;
+    --rule: #DCD6C4;
+    --green: #2D6A4F;
+    --green-soft: #E4EFE8;
+    --rust: #B5482D;
+    --rust-soft: #F6E7E1;
+    --shadow: 0 1px 2px rgba(31,42,36,0.06);
+  }
+  .dark {
+    --paper: #171A17;
+    --card: #20241F;
+    --ink: #EDEAE0;
+    --ink-soft: #9CA69E;
+    --rule: #333B33;
+    --green: #6FCF97;
+    --green-soft: #223129;
+    --rust: #E08767;
+    --rust-soft: #2F231F;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    padding: 0 0 60px;
+    transition: background .2s, color .2s;
+  }
+  header {
+    padding: 32px 20px 20px;
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--rule);
+  }
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 28px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  header .tag {
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .mode-btn {
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  .ledger-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    margin-top: 24px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--card);
+    box-shadow: var(--shadow);
+  }
+  .ledger-cell {
+    padding: 16px;
+    text-align: center;
+    border-right: 1px solid var(--rule);
+  }
+  .ledger-cell:last-child { border-right: none; }
+  .ledger-cell .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .ledger-cell .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .num.income { color: var(--green); }
+  .num.expense { color: var(--rust); }
+
+  section.card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 18px 18px 20px;
+    margin-top: 18px;
+    box-shadow: var(--shadow);
+  }
+  section.card h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 15px;
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .divider-note {
+    font-size: 11px;
+    color: var(--ink-soft);
+    font-weight: 400;
+    font-family: 'Inter', sans-serif;
+  }
+  input, select, button.action {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 8px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+  }
+  input:focus, select:focus, button:focus {
+    outline: 2px solid var(--green);
+    outline-offset: 1px;
+  }
+  button.action {
+    background: var(--green);
+    color: var(--card);
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  button.action.secondary {
+    background: transparent;
+    color: var(--green);
+    border: 1px solid var(--green);
+  }
+  button.action:hover { filter: brightness(0.95); }
+
+  .goal-row { margin-top: 14px; }
+  .goal-row .goal-name {
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .goal-name .amt { font-family: 'IBM Plex Mono', monospace; color: var(--ink-soft); }
+  .progress-track {
+    background: var(--rule);
+    border-radius: 20px;
+    overflow: hidden;
+    height: 8px;
+  }
+  .progress-fill {
+    background: var(--green);
+    height: 100%;
+    transition: width .3s;
+  }
+
+  ul.entries { list-style: none; padding: 0; margin: 0; }
+  ul.entries li {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 4px;
+    border-bottom: 1px dashed var(--rule);
+    font-size: 13px;
+  }
+  ul.entries li:last-child { border-bottom: none; }
+  ul.entries .date { color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  ul.entries .cat {
+    background: var(--green-soft);
+    color: var(--green);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    justify-self: start;
+  }
+  ul.entries .amt {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    color: var(--rust);
+  }
+  .empty-note {
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-style: italic;
+    padding: 6px 2px;
+  }
+  canvas { width: 100%; max-height: 180px; display: block; }
+  .status-line {
+    font-size: 13px;
+    color: var(--ink-soft);
+    border-top: 1px dashed var(--rule);
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+  .lock-row { display: flex; gap: 8px; }
+  .lock-row input { margin-top: 0; flex: 1; }
+  .lock-row button { width: auto; padding: 10px 16px; margin-top: 0; white-space: nowrap; }
 </style>
 </head>
-
 <body>
 
-<h1>🤖 AI Ultimate Finance Tracker</h1>
+<header>
+  <div>
+    <h1>Ledger</h1>
+    <div class="tag">A quiet place for your money</div>
+  </div>
+  <button class="mode-btn" onclick="toggleDark()">Toggle dark</button>
+</header>
 
-<div class="center">
-    <button onclick="toggleDark()">🌙 Dark Mode</button>
-</div>
+<main>
 
-<div class="card">
-    <p><b>Income:</b> $<span id="income">0</span></p>
-    <p><b>Expenses:</b> $<span id="expenses">0</span></p>
-    <p><b>Savings:</b> $<span id="savings">0</span></p>
-</div>
+  <div class="ledger-strip">
+    <div class="ledger-cell">
+      <div class="label">Income</div>
+      <div class="num income">$<span id="income">0</span></div>
+    </div>
+    <div class="ledger-cell">
+      <div class="label">Expenses</div>
+      <div class="num expense">$<span id="expenses">0</span></div>
+    </div>
+    <div class="ledger-cell">
+      <div class="label">Balance</div>
+      <div class="num" id="savingsWrap">$<span id="savings">0</span></div>
+    </div>
+  </div>
 
-<div class="card">
-    <h3>🔐 App Lock</h3>
-    <input id="passwordInput" placeholder="Set / Enter password">
-    <button onclick="setPassword()">Save / Unlock</button>
-</div>
+  <section class="card">
+    <h3>Lock this ledger <span class="divider-note">optional</span></h3>
+    <div class="lock-row">
+      <input id="passwordInput" placeholder="Set or enter a password">
+      <button class="action" style="width:auto;margin-top:0;" onclick="setPassword()">Save</button>
+    </div>
+  </section>
 
-<div class="card">
-    <h3>Add Income</h3>
-    <input type="number" id="incomeInput">
-    <button onclick="addIncome()">Add</button>
-</div>
+  <section class="card">
+    <h3>Add income</h3>
+    <input type="number" id="incomeInput" placeholder="Amount received">
+    <button class="action" onclick="addIncome()">Record income</button>
+  </section>
 
-<div class="card">
-    <h3>Add Expense</h3>
-    <input type="number" id="expenseAmount">
+  <section class="card">
+    <h3>Add expense</h3>
+    <input type="number" id="expenseAmount" placeholder="Amount spent">
     <select id="expenseCategory">
-        <option>Food</option><option>Transport</option>
-        <option>School</option><option>Entertainment</option><option>Other</option>
+      <option>Food</option>
+      <option>Transport</option>
+      <option>School</option>
+      <option>Entertainment</option>
+      <option>Other</option>
     </select>
     <input type="date" id="expenseDate">
-    <button onclick="addExpense()">Add</button>
-</div>
+    <button class="action" onclick="addExpense()">Record expense</button>
+  </section>
 
-<div class="card">
-    <h3>🎯 Add Savings Goal</h3>
-    <input id="goalName" placeholder="Goal name">
-    <input type="number" id="goalAmount" placeholder="Amount">
-    <button onclick="addGoal()">Add Goal</button>
+  <section class="card">
+    <h3>Savings goals</h3>
+    <input id="goalName" placeholder="What are you saving for?">
+    <input type="number" id="goalAmount" placeholder="Target amount">
+    <button class="action secondary" onclick="addGoal()">Add goal</button>
     <div id="goals"></div>
-</div>
+  </section>
 
-<div class="card">
-    <h3>🔔 Daily Spending Limit</h3>
-    <input type="number" id="limitInput">
-    <button onclick="setLimit()">Set Limit</button>
-</div>
+  <section class="card">
+    <h3>Daily spending limit</h3>
+    <input type="number" id="limitInput" placeholder="Amount per day">
+    <button class="action secondary" onclick="setLimit()">Set limit</button>
+  </section>
 
-<div class="card">
-    <h3>📊 Expense Chart</h3>
+  <section class="card">
+    <h3>Spending by category</h3>
     <canvas id="chart"></canvas>
-</div>
+  </section>
 
-<div class="card">
-    <h3>📜 Expense History</h3>
-    <ul id="expenseList"></ul>
-    <button onclick="exportCSV()">📤 Export CSV</button>
-</div>
+  <section class="card">
+    <h3>History</h3>
+    <ul class="entries" id="expenseList"></ul>
+    <button class="action secondary" onclick="exportCSV()">Export as CSV</button>
+    <div class="status-line" id="status"></div>
+  </section>
 
-<div class="card">
-    <h3>🤖 AI Spending Advice</h3>
-    <p id="advice"></p>
-</div>
+</main>
 
 <script>
 let income = +localStorage.income || 0;
@@ -115,93 +316,151 @@ let goals = JSON.parse(localStorage.goals || "[]");
 let limit = +localStorage.limit || 0;
 let password = localStorage.password || "";
 
+const incomeSpan = document.getElementById('income');
+const expensesSpan = document.getElementById('expenses');
+const savingsSpan = document.getElementById('savings');
+const expenseList = document.getElementById('expenseList');
+const goalsDiv = document.getElementById('goals');
+const statusEl = document.getElementById('status');
+
+function fmt(n) { return n.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
 function update() {
-    let total = expenses.reduce((s,e)=>s+e.amount,0);
-    let savings = income - total;
-    incomeSpan.textContent = income;
-    expensesSpan.textContent = total;
-    savingsSpan.textContent = savings;
+  let total = expenses.reduce((s,e)=>s+e.amount,0);
+  let savings = income - total;
+  incomeSpan.textContent = fmt(income);
+  expensesSpan.textContent = fmt(total);
+  savingsSpan.textContent = fmt(savings);
 
-    expenseList.innerHTML="";
-    expenses.forEach(e=>{
-        let li=document.createElement("li");
-        li.textContent=`${e.date} | ${e.category} | $${e.amount}`;
-        expenseList.appendChild(li);
+  expenseList.innerHTML = "";
+  if (expenses.length === 0) {
+    expenseList.innerHTML = '<li class="empty-note" style="border:none;">No expenses recorded yet.</li>';
+  } else {
+    [...expenses].reverse().forEach(e => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="date">${e.date}</span><span class="cat">${e.category}</span><span class="amt">-$${fmt(e.amount)}</span>`;
+      expenseList.appendChild(li);
     });
+  }
 
-    goalsDiv.innerHTML="";
-    goals.forEach(g=>{
-        let p=Math.min((savings/g.amount)*100,100);
-        goalsDiv.innerHTML+=`
-        <p>${g.name} ($${g.amount})</p>
-        <div class="progress-bar"><div class="progress" style="width:${p}%">${p.toFixed()}%</div></div>`;
-    });
+  goalsDiv.innerHTML = "";
+  goals.forEach(g => {
+    const p = Math.max(0, Math.min((savings / g.amount) * 100, 100));
+    const row = document.createElement('div');
+    row.className = 'goal-row';
+    row.innerHTML = `
+      <div class="goal-name"><span>${g.name}</span><span class="amt">$${fmt(g.amount)} · ${p.toFixed(0)}%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${p}%"></div></div>`;
+    goalsDiv.appendChild(row);
+  });
 
-    aiAdvice(savings,total);
-    drawChart();
+  setStatus(savings, total);
+  drawChart();
 }
 
 function addIncome(){
-    let v=+incomeInput.value;
-    if(v>0){ income+=v; localStorage.income=income; incomeInput.value=""; update(); }
+  const v = +document.getElementById('incomeInput').value;
+  if (v > 0) {
+    income += v;
+    localStorage.income = income;
+    document.getElementById('incomeInput').value = "";
+    update();
+  }
 }
 
 function addExpense(){
-    let a=+expenseAmount.value, c=expenseCategory.value, d=expenseDate.value;
-    if(a>0 && d){
-        expenses.push({amount:a,category:c,date:d});
-        localStorage.expenses=JSON.stringify(expenses);
-        let today=expenses.filter(e=>e.date===d).reduce((s,e)=>s+e.amount,0);
-        if(limit && today>limit) alert("⚠️ Daily limit exceeded");
-        update();
-    }
+  const a = +document.getElementById('expenseAmount').value;
+  const c = document.getElementById('expenseCategory').value;
+  const d = document.getElementById('expenseDate').value;
+  if (a > 0 && d) {
+    expenses.push({amount:a, category:c, date:d});
+    localStorage.expenses = JSON.stringify(expenses);
+    document.getElementById('expenseAmount').value = "";
+    const todayTotal = expenses.filter(e => e.date === d).reduce((s,e)=>s+e.amount,0);
+    if (limit && todayTotal > limit) alert(`Daily limit of $${fmt(limit)} exceeded for ${d}.`);
+    update();
+  }
 }
 
 function addGoal(){
-    goals.push({name:goalName.value,amount:+goalAmount.value});
-    localStorage.goals=JSON.stringify(goals);
-    goalName.value=goalAmount.value="";
+  const name = document.getElementById('goalName').value.trim();
+  const amount = +document.getElementById('goalAmount').value;
+  if (name && amount > 0) {
+    goals.push({name, amount});
+    localStorage.goals = JSON.stringify(goals);
+    document.getElementById('goalName').value = "";
+    document.getElementById('goalAmount').value = "";
     update();
+  }
 }
 
-function setLimit(){ limit=+limitInput.value; localStorage.limit=limit; }
+function setLimit(){
+  limit = +document.getElementById('limitInput').value;
+  localStorage.limit = limit;
+}
 
 function exportCSV(){
-    let csv="Date,Category,Amount\n";
-    expenses.forEach(e=>csv+=`${e.date},${e.category},${e.amount}\n`);
-    let a=document.createElement("a");
-    a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
-    a.download="expenses.csv"; a.click();
+  let csv = "Date,Category,Amount\n";
+  expenses.forEach(e => csv += `${e.date},${e.category},${e.amount}\n`);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+  a.download = "expenses.csv";
+  a.click();
 }
 
-function aiAdvice(savings,spent){
-    let msg="Good job tracking your money.";
-    if(spent>income*0.8) msg="⚠️ You are spending too much. Try saving more.";
-    if(savings>income*0.3) msg="🎉 Excellent saving habits!";
-    advice.textContent=msg;
+function setStatus(savings, spent){
+  let msg = "Steady as it goes.";
+  if (income > 0 && spent > income * 0.8) msg = "You've spent over 80% of your income this period.";
+  if (income > 0 && savings > income * 0.3) msg = "You're keeping over 30% of your income — solid saving pace.";
+  statusEl.textContent = msg;
 }
 
 function drawChart(){
-    let ctx=chart.getContext("2d");
-    ctx.clearRect(0,0,chart.width,chart.height);
-    let data={};
-    expenses.forEach(e=>data[e.category]=(data[e.category]||0)+e.amount);
-    let x=10,max=Math.max(...Object.values(data),1);
-    for(let k in data){
-        let h=(data[k]/max)*150;
-        ctx.fillStyle="#007bff";
-        ctx.fillRect(x,180-h,30,h);
-        ctx.fillText(k,x,195);
-        x+=50;
-    }
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.clientWidth;
+  canvas.height = 180;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const data = {};
+  expenses.forEach(e => data[e.category] = (data[e.category] || 0) + e.amount);
+  const keys = Object.keys(data);
+  if (keys.length === 0) {
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--ink-soft');
+    ctx.font = "13px Inter";
+    ctx.fillText("No data to chart yet.", 10, 90);
+    return;
+  }
+
+  const max = Math.max(...Object.values(data));
+  const barWidth = Math.min(50, (canvas.width - 20) / keys.length - 14);
+  const green = getComputedStyle(document.body).getPropertyValue('--green');
+  const ink = getComputedStyle(document.body).getPropertyValue('--ink-soft');
+  let x = 10;
+  keys.forEach(k => {
+    const h = (data[k] / max) * 130;
+    ctx.fillStyle = green;
+    ctx.fillRect(x, 150 - h, barWidth, h);
+    ctx.fillStyle = ink;
+    ctx.font = "11px Inter";
+    ctx.textAlign = "center";
+    ctx.fillText(k, x + barWidth / 2, 168);
+    x += barWidth + 14;
+  });
+  ctx.textAlign = "left";
 }
 
-function toggleDark(){ document.body.classList.toggle("dark"); }
+function toggleDark(){ document.body.classList.toggle('dark'); }
 
 function setPassword(){
-    let p=passwordInput.value;
-    if(!password){ localStorage.password=p; alert("Password set"); }
-    else if(p===password){ alert("Unlocked"); }
+  const p = document.getElementById('passwordInput').value;
+  if (!password) {
+    if (p) { password = p; localStorage.password = p; alert("Password set."); }
+  } else if (p === password) {
+    alert("Unlocked.");
+  } else {
+    alert("Incorrect password.");
+  }
 }
 
 update();
