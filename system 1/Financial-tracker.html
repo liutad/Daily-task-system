@@ -5,31 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ledger — Money Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #F6F3EC;
-    --card: #FFFFFF;
-    --ink: #1F2A24;
-    --ink-soft: #5B6660;
-    --rule: #DCD6C4;
-    --green: #2D6A4F;
-    --green-soft: #E4EFE8;
-    --rust: #B5482D;
-    --rust-soft: #F6E7E1;
-    --shadow: 0 1px 2px rgba(31,42,36,0.06);
-  }
-  .dark {
-    --paper: #171A17;
-    --card: #20241F;
-    --ink: #EDEAE0;
-    --ink-soft: #9CA69E;
-    --rule: #333B33;
-    --green: #6FCF97;
-    --green-soft: #223129;
-    --rust: #E08767;
-    --rust-soft: #2F231F;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3);
+    --paper: #242424;
+    --card: #242424;
+    --ink: #F2EFEA;
+    --ink-soft: #A9A49B;
+    --border: #F2EFEA;
+    --rule: rgba(242,239,234,0.28);
+    --green: #E8632B;
+    --green-soft: rgba(232,99,43,0.14);
+    --rust: #D6544A;
+    --rust-soft: rgba(214,84,74,0.14);
+    --shadow: none;
   }
   * { box-sizing: border-box; }
   body {
@@ -41,36 +30,29 @@
     transition: background .2s, color .2s;
   }
   header {
-    padding: 32px 20px 20px;
+    padding: 28px 20px 0;
     max-width: 640px;
     margin: 0 auto;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--rule);
+  }
+  .title-pill {
+    border: 2px solid var(--border);
+    border-radius: 999px;
+    padding: 26px 20px;
+    text-align: center;
   }
   header h1 {
-    font-family: 'Fraunces', serif;
+    font-family: 'Fredoka', sans-serif;
     font-weight: 600;
-    font-size: 28px;
+    font-size: 34px;
     margin: 0;
     letter-spacing: -0.01em;
   }
   header .tag {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--ink-soft);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .mode-btn {
-    background: none;
-    border: 1px solid var(--rule);
-    color: var(--ink);
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    cursor: pointer;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
   }
   main {
     max-width: 640px;
@@ -81,16 +63,16 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     margin-top: 24px;
-    border: 1px solid var(--rule);
-    border-radius: 10px;
+    border: 2px solid var(--border);
+    border-radius: 32px;
     overflow: hidden;
     background: var(--card);
     box-shadow: var(--shadow);
   }
   .ledger-cell {
-    padding: 16px;
+    padding: 20px 12px;
     text-align: center;
-    border-right: 1px solid var(--rule);
+    border-right: 1px dashed var(--rule);
   }
   .ledger-cell:last-child { border-right: none; }
   .ledger-cell .label {
@@ -102,29 +84,43 @@
   }
   .ledger-cell .num {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 500;
     font-variant-numeric: tabular-nums;
   }
-  .num.income { color: var(--green); }
-  .num.expense { color: var(--rust); }
+  .num.income { color: var(--ink); }
+  .num.expense { color: var(--ink); }
+  #savingsWrap { color: var(--green); }
 
   section.card {
+    position: relative;
     background: var(--card);
-    border: 1px solid var(--rule);
-    border-radius: 10px;
-    padding: 18px 18px 20px;
-    margin-top: 18px;
+    border: 2px solid var(--border);
+    border-radius: 32px;
+    padding: 30px 20px 22px;
+    margin-top: 40px;
     box-shadow: var(--shadow);
   }
   section.card h3 {
-    font-family: 'Fraunces', serif;
+    position: absolute;
+    top: -19px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--paper);
+    border: 2px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 20px;
+    width: max-content;
+    max-width: 90%;
+    font-family: 'Fredoka', sans-serif;
     font-weight: 600;
-    font-size: 15px;
-    margin: 0 0 12px;
+    font-size: 14px;
+    margin: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
+    text-align: center;
   }
   .divider-note {
     font-size: 11px;
@@ -134,33 +130,47 @@
   }
   input, select, button.action {
     width: 100%;
-    padding: 10px 12px;
+    padding: 10px 4px;
     margin-top: 8px;
-    border: 1px solid var(--rule);
-    border-radius: 6px;
-    background: var(--paper);
+    border: none;
+    border-bottom: 1px dashed var(--rule);
+    border-radius: 0;
+    background: transparent;
     color: var(--ink);
     font-family: 'Inter', sans-serif;
     font-size: 14px;
   }
+  input::placeholder { color: var(--ink-soft); }
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%), linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%);
+    background-position: calc(100% - 14px) 18px, calc(100% - 9px) 18px;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+  select option { background: var(--paper); color: var(--ink); }
   input:focus, select:focus, button:focus {
-    outline: 2px solid var(--green);
-    outline-offset: 1px;
+    outline: none;
+    border-bottom: 1px solid var(--green);
   }
   button.action {
     background: var(--green);
-    color: var(--card);
-    border: none;
-    font-weight: 500;
+    color: #fff;
+    border: 2px solid var(--green) !important;
+    border-radius: 999px !important;
+    font-weight: 600;
+    font-family: 'Fredoka', sans-serif;
     cursor: pointer;
-    margin-top: 12px;
+    margin-top: 14px;
+    padding: 11px 12px;
   }
   button.action.secondary {
     background: transparent;
     color: var(--green);
-    border: 1px solid var(--green);
+    border: 2px solid var(--green) !important;
   }
-  button.action:hover { filter: brightness(0.95); }
+  button.action:hover { filter: brightness(1.08); }
 
   .goal-row { margin-top: 14px; }
   .goal-row .goal-name {
@@ -194,13 +204,21 @@
   }
   ul.entries li:last-child { border-bottom: none; }
   ul.entries .date { color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  ul.entries .cat-desc { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
   ul.entries .cat {
     background: var(--green-soft);
     color: var(--green);
     padding: 2px 8px;
     border-radius: 10px;
     font-size: 11px;
-    justify-self: start;
+  }
+  ul.entries .desc {
+    font-size: 12px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
   ul.entries .amt {
     font-family: 'IBM Plex Mono', monospace;
@@ -221,18 +239,10 @@
     padding-top: 10px;
     margin-top: 4px;
   }
-  .lock-row { display: flex; gap: 8px; }
-  .lock-row input { margin-top: 0; flex: 1; }
-  .lock-row button { width: auto; padding: 10px 16px; margin-top: 0; white-space: nowrap; }
-
   .month-badge {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    background: var(--green-soft);
+    font-size: 10.5px;
     color: var(--green);
-    padding: 2px 8px;
-    border-radius: 10px;
-    margin-left: auto;
   }
   .budget-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .budget-row { margin-top: 16px; }
@@ -253,9 +263,9 @@
     border-top: 1px solid var(--rule);
   }
   .guide h2 {
-    font-family: 'Fraunces', serif;
+    font-family: 'Fredoka', sans-serif;
     font-weight: 600;
-    font-size: 20px;
+    font-size: 22px;
     margin: 0 0 4px;
   }
   .guide .guide-sub {
@@ -265,7 +275,7 @@
   }
   .guide ol { padding-left: 20px; margin: 0; }
   .guide li { font-size: 13.5px; line-height: 1.6; margin-bottom: 14px; }
-  .guide li b { font-family: 'Fraunces', serif; font-weight: 600; }
+  .guide li b { font-family: 'Fredoka', sans-serif; font-weight: 600; }
   .guide p.note {
     font-size: 12.5px;
     color: var(--ink-soft);
@@ -274,16 +284,33 @@
     padding: 10px 12px;
     margin-top: 16px;
   }
+
+  #dailyLog li {
+    grid-template-columns: 100px 1fr auto;
+  }
+  #dailyLog .day-bar {
+    background: var(--rule);
+    border-radius: 20px;
+    height: 6px;
+    overflow: hidden;
+  }
+  #dailyLog .day-bar-fill {
+    background: var(--green);
+    height: 100%;
+  }
+  #dailyLog .day-bar-fill.over { background: var(--rust); }
+  #dailyLog .day-total { font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
+  #dailyLog .day-total.over { color: var(--rust); }
+  #dailyLog .day-total.today { color: var(--green); }
 </style>
 </head>
 <body>
 
 <header>
-  <div>
+  <div class="title-pill">
     <h1>Ledger</h1>
     <div class="tag">A quiet place for your money</div>
   </div>
-  <button class="mode-btn" onclick="toggleDark()">Toggle dark</button>
 </header>
 
 <main>
@@ -304,14 +331,6 @@
   </div>
 
   <section class="card">
-    <h3>Lock this ledger <span class="divider-note">optional</span></h3>
-    <div class="lock-row">
-      <input id="passwordInput" placeholder="Set or enter a password">
-      <button class="action" style="width:auto;margin-top:0;" onclick="setPassword()">Save</button>
-    </div>
-  </section>
-
-  <section class="card">
     <h3>Add income</h3>
     <input type="number" id="incomeInput" placeholder="Amount received">
     <button class="action" onclick="addIncome()">Record income</button>
@@ -327,8 +346,14 @@
       <option>Entertainment</option>
       <option>Other</option>
     </select>
+    <input id="expenseDesc" placeholder="What was it? e.g. Nasi lemak, electricity bill">
     <input type="date" id="expenseDate">
     <button class="action" onclick="addExpense()">Record expense</button>
+  </section>
+
+  <section class="card">
+    <h3>Daily log <span class="month-badge" id="dailyLogMonthBadge"></span></h3>
+    <ul class="entries" id="dailyLog"></ul>
   </section>
 
   <section class="card">
@@ -373,18 +398,27 @@
     <div class="status-line" id="status"></div>
   </section>
 
+  <section class="card">
+    <h3>Reset for a new month</h3>
+    <p style="font-size:13px; color:var(--ink-soft); margin:0 0 10px;">
+      Backs up your current data to a CSV file, then clears income and expenses so you can start the new month at zero. Savings goals and past months' budgets are kept.
+    </p>
+    <button class="action secondary" onclick="resetMonth()">Export backup &amp; reset</button>
+  </section>
+
   <div class="guide">
     <h2>Guide book</h2>
     <div class="guide-sub">How to use Ledger, section by section</div>
     <ol>
       <li><b>Add income.</b> Every time money comes in — allowance, pay, a transfer — enter the amount and record it. This is the number your budgets and balance are measured against.</li>
-      <li><b>Add expense.</b> Pick a category, the date it happened, and the amount. Recording expenses on the day they happen (rather than batching them later) keeps your daily limit and monthly budget checks accurate.</li>
+      <li><b>Add expense.</b> Pick a category, jot down what it actually was (like "Nasi lemak" or "electricity bill"), the date, and the amount. The date defaults to today automatically. The description is optional but makes your history and CSV export far more useful than category alone — you'll be able to tell "Food" apart from "Food, but specifically the good roti canai place."</li>
+      <li><b>Daily log.</b> This is your day-by-day view for the current month — one row per day, showing that day's total spending with a bar so heavier spending days stand out at a glance. It updates the moment you record an expense, so you don't need to export anything to see how a day went; save the CSV export for a proper backup at month's end.</li>
       <li><b>Monthly budget — how it works.</b> Choose a category and set how much you're allowed to spend on it <i>this calendar month</i>. Ledger automatically totals your expenses in that category for the current month and shows a bar filling up as you spend. The bar turns rust-red once you go over. Budgets reset naturally each month because they're always compared against that month's dated expenses — nothing to reset manually, just keep dating your expenses correctly.</li>
       <li><b>Reading the budget bars.</b> Each row shows "spent / budget" for the current month. If you set a Food budget of $300 and you've logged $180 in Food expenses dated this month, the bar sits at 60%. Re-setting a category's budget overwrites the old amount for that month.</li>
       <li><b>Savings goals.</b> Give a goal a name and a target amount. Progress is based on your overall balance (income minus all expenses), not a monthly figure — it's for longer-term targets like a laptop or a trip.</li>
       <li><b>Daily spending limit.</b> A simple trip-wire: if a single day's expenses cross this number, you'll get an alert the moment you log the expense that pushes you over.</li>
       <li><b>Spending by category chart</b> and <b>History</b> give you the shape of where money goes and a running log you can export to CSV any time.</li>
-      <li><b>Lock this ledger.</b> Optional password gate for this device. It's a light deterrent stored in your browser, not encryption — don't rely on it for sensitive data.</li>
+      <li><b>Reset for a new month.</b> At month's end, tap "Export backup &amp; reset." It automatically downloads a CSV of everything so far, then clears your income and expense totals back to zero — a clean slate for the new month. Your savings goals and their target amounts stay, though their progress bars will show 0% right after a reset since progress is based on your balance — they'll fill back up as you add income and keep saving. Budgets you set for past months stay saved under that month; only the running income/expense numbers are cleared.</li>
     </ol>
     <p class="note">Everything is stored locally in this browser (localStorage). Clearing browser data or switching devices means starting fresh — export to CSV first if you want a backup.</p>
   </div>
@@ -396,7 +430,6 @@ let income = +localStorage.income || 0;
 let expenses = JSON.parse(localStorage.expenses || "[]");
 let goals = JSON.parse(localStorage.goals || "[]");
 let limit = +localStorage.limit || 0;
-let password = localStorage.password || "";
 // budgets: { "2026-07": { Food: 300, Transport: 100 }, ... } — one set of category budgets per month
 let budgets = JSON.parse(localStorage.budgets || "{}");
 
@@ -404,6 +437,8 @@ const incomeSpan = document.getElementById('income');
 const expensesSpan = document.getElementById('expenses');
 const savingsSpan = document.getElementById('savings');
 const expenseList = document.getElementById('expenseList');
+const dailyLog = document.getElementById('dailyLog');
+const dailyLogMonthBadge = document.getElementById('dailyLogMonthBadge');
 const goalsDiv = document.getElementById('goals');
 const budgetsDiv = document.getElementById('budgets');
 const monthBadge = document.getElementById('monthBadge');
@@ -418,6 +453,7 @@ function currentMonthLabel() {
 }
 
 function fmt(n) { return n.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 function update() {
   let total = expenses.reduce((s,e)=>s+e.amount,0);
@@ -432,7 +468,8 @@ function update() {
   } else {
     [...expenses].reverse().forEach(e => {
       const li = document.createElement('li');
-      li.innerHTML = `<span class="date">${e.date}</span><span class="cat">${e.category}</span><span class="amt">-$${fmt(e.amount)}</span>`;
+      const descHtml = e.desc ? `<span class="desc">${esc(e.desc)}</span>` : "";
+      li.innerHTML = `<span class="date">${e.date}</span><span class="cat-desc"><span class="cat">${esc(e.category)}</span>${descHtml}</span><span class="amt">-$${fmt(e.amount)}</span>`;
       expenseList.appendChild(li);
     });
   }
@@ -449,8 +486,45 @@ function update() {
   });
 
   renderBudgets();
+  renderDailyLog();
+  renderBudgets();
   setStatus(savings, total);
   drawChart();
+}
+
+function renderDailyLog() {
+  dailyLogMonthBadge.textContent = currentMonthLabel();
+  const monthKey = currentMonthKey();
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  const totalsByDay = {};
+  expenses.forEach(e => {
+    if (e.date.slice(0,7) === monthKey) {
+      totalsByDay[e.date] = (totalsByDay[e.date] || 0) + e.amount;
+    }
+  });
+
+  const days = Object.keys(totalsByDay).sort().reverse();
+  dailyLog.innerHTML = "";
+
+  if (days.length === 0) {
+    dailyLog.innerHTML = '<li class="empty-note" style="border:none;">No expenses logged yet this month. Add one above and it will show up here by day.</li>';
+    return;
+  }
+
+  const dayMax = Math.max(...Object.values(totalsByDay));
+  days.forEach(day => {
+    const total = totalsByDay[day];
+    const isToday = day === todayStr;
+    const overLimit = limit > 0 && total > limit;
+    const barPct = dayMax > 0 ? (total / dayMax) * 100 : 0;
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span class="date">${day}${isToday ? ' · today' : ''}</span>
+      <span class="day-bar"><span class="day-bar-fill${overLimit ? ' over' : ''}" style="width:${barPct}%"></span></span>
+      <span class="day-total${overLimit ? ' over' : (isToday ? ' today' : '')}">$${fmt(total)}</span>`;
+    dailyLog.appendChild(li);
+  });
 }
 
 function renderBudgets() {
@@ -507,11 +581,13 @@ function addIncome(){
 function addExpense(){
   const a = +document.getElementById('expenseAmount').value;
   const c = document.getElementById('expenseCategory').value;
+  const desc = document.getElementById('expenseDesc').value.trim();
   const d = document.getElementById('expenseDate').value;
   if (a > 0 && d) {
-    expenses.push({amount:a, category:c, date:d});
+    expenses.push({amount:a, category:c, desc:desc, date:d});
     localStorage.expenses = JSON.stringify(expenses);
     document.getElementById('expenseAmount').value = "";
+    document.getElementById('expenseDesc').value = "";
     const todayTotal = expenses.filter(e => e.date === d).reduce((s,e)=>s+e.amount,0);
     if (limit && todayTotal > limit) alert(`Daily limit of $${fmt(limit)} exceeded for ${d}.`);
 
@@ -543,12 +619,30 @@ function setLimit(){
 }
 
 function exportCSV(){
-  let csv = "Date,Category,Amount\n";
-  expenses.forEach(e => csv += `${e.date},${e.category},${e.amount}\n`);
+  let csv = "Date,Category,Description,Amount\n";
+  expenses.forEach(e => csv += `${e.date},${e.category},"${(e.desc||"").replace(/"/g,'""')}",${e.amount}\n`);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
   a.download = "expenses.csv";
   a.click();
+}
+
+function resetMonth(){
+  if (expenses.length === 0 && income === 0) {
+    alert("Nothing to reset yet.");
+    return;
+  }
+  const confirmed = confirm("This will download a CSV backup of your current data, then clear your income and expenses to start fresh. Savings goals and budgets stay. Continue?");
+  if (!confirmed) return;
+
+  exportCSV();
+
+  expenses = [];
+  income = 0;
+  localStorage.expenses = JSON.stringify(expenses);
+  localStorage.income = income;
+  update();
+  alert("Backup downloaded and this month has been reset. Ready for the new month.");
 }
 
 function setStatus(savings, spent){
@@ -593,20 +687,13 @@ function drawChart(){
   ctx.textAlign = "left";
 }
 
-function toggleDark(){ document.body.classList.toggle('dark'); }
-
-function setPassword(){
-  const p = document.getElementById('passwordInput').value;
-  if (!password) {
-    if (p) { password = p; localStorage.password = p; alert("Password set."); }
-  } else if (p === password) {
-    alert("Unlocked.");
-  } else {
-    alert("Incorrect password.");
-  }
+function setDefaultDate(){
+  const dateInput = document.getElementById('expenseDate');
+  if (!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
 }
 
 update();
+setDefaultDate();
 </script>
 
 </body>
