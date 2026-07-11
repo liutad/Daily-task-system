@@ -2,6 +2,7 @@ self.addEventListener("install", e => {
   e.waitUntil(
     caches.open("task-app-cache").then(cache => {
       return cache.addAll([
+        "Auth.js",
         "index.html",
         "Task.html",
         "system1.html",
