@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daily Task System</title>
 
+<!-- AUTH GUARD: must be the first script, no defer/async, so it redirects
+     before the page renders if there's no logged-in profile -->
+<script src="auth.js"></script>
+
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
@@ -80,6 +84,13 @@ body {
     color: #ccc; /* light gray subtitle */
 }
 
+/* Welcome line */
+.welcome-line {
+    margin-top: 5px;
+    font-size: 0.95rem;
+    color: #8ea0ff;
+}
+
 /* Fade Slide Animation */
 @keyframes fadeSlide {
     0% { opacity: 0; transform: translateY(20px);}
@@ -149,8 +160,8 @@ body {
         <li class="nav-item"><a class="nav-link" href="Performances.html">Performances</a></li>
         <li class="nav-item"><a class="nav-link" href="Strategy.html">Strategy</a></li>
         <li class="nav-item"><a class="nav-link" href="Financial-tracker.html">Financial tracker</a></li>
-          <li class="nav-item"><a class="nav-link" href="skills-tree.html">Skills tree</a></li>
-        <li class="nav-item"><a class="nav-link" href="loginpage.html">Login</a></li>
+        <li class="nav-item"><a class="nav-link" href="skills-tree.html">Skills tree</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="logout()">Logout</a></li>
       </ul>
     </div>
   </div>
@@ -162,14 +173,18 @@ body {
     <h1>Daily Task</h1>
     <h1>System</h1>
     <p>Boost your productivity</p>
+    <p class="welcome-line" id="welcomeLine"></p>
     <a href="system1.html" class="btn btn-start w-100">Start</a>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Show a quick welcome using the logged-in profile's name
+  const profile = JSON.parse(localStorage.getItem('profile') || 'null');
+  if (profile && profile.name) {
+    document.getElementById('welcomeLine').textContent = 'Welcome back, ' + profile.name;
+  }
+</script>
 </body>
 </html>
-
-
-
-
