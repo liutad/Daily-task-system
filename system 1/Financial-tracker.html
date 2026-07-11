@@ -224,6 +224,56 @@
   .lock-row { display: flex; gap: 8px; }
   .lock-row input { margin-top: 0; flex: 1; }
   .lock-row button { width: auto; padding: 10px 16px; margin-top: 0; white-space: nowrap; }
+
+  .month-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    background: var(--green-soft);
+    color: var(--green);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: auto;
+  }
+  .budget-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .budget-row { margin-top: 16px; }
+  .budget-row .budget-name {
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .budget-name .amt { font-family: 'IBM Plex Mono', monospace; color: var(--ink-soft); }
+  .budget-name .over { color: var(--rust); }
+  .progress-fill.over { background: var(--rust); }
+  .budget-row.empty { color: var(--ink-soft); font-size: 13px; font-style: italic; margin-top: 14px; }
+
+  .guide {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+  }
+  .guide h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+  .guide .guide-sub {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+  }
+  .guide ol { padding-left: 20px; margin: 0; }
+  .guide li { font-size: 13.5px; line-height: 1.6; margin-bottom: 14px; }
+  .guide li b { font-family: 'Fraunces', serif; font-weight: 600; }
+  .guide p.note {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    background: var(--green-soft);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 16px;
+  }
 </style>
 </head>
 <body>
@@ -290,6 +340,22 @@
   </section>
 
   <section class="card">
+    <h3>Monthly budget <span class="month-badge" id="monthBadge"></span></h3>
+    <div class="budget-form">
+      <select id="budgetCategory">
+        <option>Food</option>
+        <option>Transport</option>
+        <option>School</option>
+        <option>Entertainment</option>
+        <option>Other</option>
+      </select>
+      <input type="number" id="budgetAmount" placeholder="Budget amount">
+    </div>
+    <button class="action secondary" onclick="setBudget()">Set budget for this category</button>
+    <div id="budgets"></div>
+  </section>
+
+  <section class="card">
     <h3>Daily spending limit</h3>
     <input type="number" id="limitInput" placeholder="Amount per day">
     <button class="action secondary" onclick="setLimit()">Set limit</button>
@@ -307,6 +373,22 @@
     <div class="status-line" id="status"></div>
   </section>
 
+  <div class="guide">
+    <h2>Guide book</h2>
+    <div class="guide-sub">How to use Ledger, section by section</div>
+    <ol>
+      <li><b>Add income.</b> Every time money comes in — allowance, pay, a transfer — enter the amount and record it. This is the number your budgets and balance are measured against.</li>
+      <li><b>Add expense.</b> Pick a category, the date it happened, and the amount. Recording expenses on the day they happen (rather than batching them later) keeps your daily limit and monthly budget checks accurate.</li>
+      <li><b>Monthly budget — how it works.</b> Choose a category and set how much you're allowed to spend on it <i>this calendar month</i>. Ledger automatically totals your expenses in that category for the current month and shows a bar filling up as you spend. The bar turns rust-red once you go over. Budgets reset naturally each month because they're always compared against that month's dated expenses — nothing to reset manually, just keep dating your expenses correctly.</li>
+      <li><b>Reading the budget bars.</b> Each row shows "spent / budget" for the current month. If you set a Food budget of $300 and you've logged $180 in Food expenses dated this month, the bar sits at 60%. Re-setting a category's budget overwrites the old amount for that month.</li>
+      <li><b>Savings goals.</b> Give a goal a name and a target amount. Progress is based on your overall balance (income minus all expenses), not a monthly figure — it's for longer-term targets like a laptop or a trip.</li>
+      <li><b>Daily spending limit.</b> A simple trip-wire: if a single day's expenses cross this number, you'll get an alert the moment you log the expense that pushes you over.</li>
+      <li><b>Spending by category chart</b> and <b>History</b> give you the shape of where money goes and a running log you can export to CSV any time.</li>
+      <li><b>Lock this ledger.</b> Optional password gate for this device. It's a light deterrent stored in your browser, not encryption — don't rely on it for sensitive data.</li>
+    </ol>
+    <p class="note">Everything is stored locally in this browser (localStorage). Clearing browser data or switching devices means starting fresh — export to CSV first if you want a backup.</p>
+  </div>
+
 </main>
 
 <script>
@@ -315,13 +397,25 @@ let expenses = JSON.parse(localStorage.expenses || "[]");
 let goals = JSON.parse(localStorage.goals || "[]");
 let limit = +localStorage.limit || 0;
 let password = localStorage.password || "";
+// budgets: { "2026-07": { Food: 300, Transport: 100 }, ... } — one set of category budgets per month
+let budgets = JSON.parse(localStorage.budgets || "{}");
 
 const incomeSpan = document.getElementById('income');
 const expensesSpan = document.getElementById('expenses');
 const savingsSpan = document.getElementById('savings');
 const expenseList = document.getElementById('expenseList');
 const goalsDiv = document.getElementById('goals');
+const budgetsDiv = document.getElementById('budgets');
+const monthBadge = document.getElementById('monthBadge');
 const statusEl = document.getElementById('status');
+
+function currentMonthKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function currentMonthLabel() {
+  return new Date().toLocaleDateString(undefined, {month:'long', year:'numeric'});
+}
 
 function fmt(n) { return n.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
 
@@ -354,8 +448,50 @@ function update() {
     goalsDiv.appendChild(row);
   });
 
+  renderBudgets();
   setStatus(savings, total);
   drawChart();
+}
+
+function renderBudgets() {
+  monthBadge.textContent = currentMonthLabel();
+  const monthKey = currentMonthKey();
+  const monthBudgets = budgets[monthKey] || {};
+  const cats = Object.keys(monthBudgets);
+
+  budgetsDiv.innerHTML = "";
+  if (cats.length === 0) {
+    budgetsDiv.innerHTML = '<div class="budget-row empty">No budgets set for this month yet.</div>';
+    return;
+  }
+
+  cats.forEach(cat => {
+    const budgetAmt = monthBudgets[cat];
+    const spent = expenses
+      .filter(e => e.category === cat && e.date.slice(0,7) === monthKey)
+      .reduce((s,e)=>s+e.amount,0);
+    const p = Math.min((spent / budgetAmt) * 100, 100);
+    const over = spent > budgetAmt;
+    const row = document.createElement('div');
+    row.className = 'budget-row';
+    row.innerHTML = `
+      <div class="budget-name"><span>${cat}</span><span class="amt${over ? ' over' : ''}">$${fmt(spent)} / $${fmt(budgetAmt)}</span></div>
+      <div class="progress-track"><div class="progress-fill${over ? ' over' : ''}" style="width:${p}%"></div></div>`;
+    budgetsDiv.appendChild(row);
+  });
+}
+
+function setBudget(){
+  const cat = document.getElementById('budgetCategory').value;
+  const amt = +document.getElementById('budgetAmount').value;
+  if (amt > 0) {
+    const monthKey = currentMonthKey();
+    if (!budgets[monthKey]) budgets[monthKey] = {};
+    budgets[monthKey][cat] = amt;
+    localStorage.budgets = JSON.stringify(budgets);
+    document.getElementById('budgetAmount').value = "";
+    update();
+  }
 }
 
 function addIncome(){
@@ -378,6 +514,13 @@ function addExpense(){
     document.getElementById('expenseAmount').value = "";
     const todayTotal = expenses.filter(e => e.date === d).reduce((s,e)=>s+e.amount,0);
     if (limit && todayTotal > limit) alert(`Daily limit of $${fmt(limit)} exceeded for ${d}.`);
+
+    const monthKey = d.slice(0,7);
+    const monthBudget = (budgets[monthKey] || {})[c];
+    if (monthBudget) {
+      const spentInCat = expenses.filter(e => e.category === c && e.date.slice(0,7) === monthKey).reduce((s,e)=>s+e.amount,0);
+      if (spentInCat > monthBudget) alert(`You've gone over your ${monthKey} budget for ${c}: $${fmt(spentInCat)} / $${fmt(monthBudget)}.`);
+    }
     update();
   }
 }
