@@ -75,6 +75,12 @@ function showRegister(){
   document.getElementById('registerBox').classList.remove('hidden');
 }
 
+// If someone is already logged in and lands back on the login page,
+// just send them straight into the system.
+if (localStorage.getItem('profile')) {
+  window.location.href = 'index.html';
+}
+
 // SAVE ACCOUNT
 const accounts = JSON.parse(localStorage.getItem('accounts') || '{}');
 
@@ -115,10 +121,12 @@ document.getElementById('loginForm').addEventListener('submit', e => {
     return;
   }
 
-  // Save the profile for performance page
+  // Save the logged-in profile — this is what auth.js checks on every
+  // protected page, and what Performances.html reads for stats.
   localStorage.setItem('profile', JSON.stringify(accounts[u]));
 
-  window.location.href = 'Performances.html';
+  // Go to the main Daily Task System hub, not straight to Performances.
+  window.location.href = 'index.html';
 });
 </script>
 
